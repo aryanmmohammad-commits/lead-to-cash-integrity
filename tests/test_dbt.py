@@ -1,5 +1,6 @@
 import copy
 import io
+import shutil
 from collections import Counter
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -159,6 +160,8 @@ def test_quarantine_has_exact_planted_findings_and_retains_raw_evidence(
         "FROM marts.quarantine ORDER BY 1,2,3",
     )
     assert set(rows) == {
+        ("younium_orders", "PLANT-O-B02:1", "version", "1", "ambiguous"),
+        ("younium_orders", "PLANT-O-B02:2", "version", "2", "ambiguous"),
         ("hubspot_deals", "PLANT-Q02", "currency", "USD", "no_fx_rate"),
         ("younium_accounts", "PLANT-Q01", "domain", "gmail.com", "generic_email_domain"),
         (
@@ -595,7 +598,7 @@ def test_scorecard_denominators_failed_record_counts_and_push_aggregation(
         ]
     )
     assert _query(database, "SELECT rows_failed FROM marts.audit_scorecard WHERE check_id='Q'") == [
-        (8,)
+        (10,)
     ]
     assert _query(
         database,
@@ -787,6 +790,153 @@ def test_duplicate_push_scorecard_counts_failed_deals_instead_of_duplicate_order
         configured_checks,
         "SELECT rows_failed FROM marts.audit_scorecard WHERE check_id='R9'",
     ) == [(1,)]
+
+
+def _arr_case_ids() -> list[str]:
+    contract = yaml.safe_load(
+        Path(__file__).with_name("planted_cases.yml").read_text(encoding="utf-8")
+    )
+    return [
+        case_id
+        for case_id, case in contract["cases"].items()
+        if case["bridge_category"]
+        or case.get("expected_billing_arr_chf")
+        or case.get("expected_crm_arr_chf")
+    ]
+
+
+@pytest.mark.parametrize("case_id", _arr_case_ids())
+def test_planted_arr_and_signed_bridge_contributions_are_exact(
+    case_id: str, built: dict[str, Path], planted_contract: dict
+) -> None:
+    database = built["default"]
+    case = planted_contract["cases"][case_id]
+    if case["bridge_category"]:
+        rows = _query(
+            database,
+            "SELECT object_type, record_id, category, amount_chf "
+            "FROM intermediate.int_arr_bridge_ledger",
+        )
+        selected = [row for row in rows if row[:2] in _case_objects(case)]
+        amounts: Counter = Counter()
+        for _, _, category, amount in selected:
+            if amount:
+                amounts[category] += amount
+        expected = case.get("bridge_amount_chf")
+        if expected is None:
+            assert any(row[2] == case["bridge_category"] for row in selected)
+            assert not amounts  # Unknown FX is never assigned an invented CHF value.
+        else:
+            assert amounts == {case["bridge_category"]: Decimal(str(expected))}
+    for system, source_table, key in (
+        ("billing", "younium_orders", "order_number"),
+        ("crm", "hubspot_deals", "deal_id"),
+    ):
+        ids = sorted({record[key] for record in case["records"].get(source_table, [])})
+        for when, expected in case.get(f"expected_{system}_arr_chf", {}).items():
+            assert _query(
+                database,
+                f"SELECT coalesce(sum(arr_chf),0) FROM marts.arr_{system}_monthly "
+                f"WHERE month_end = ? AND list_contains(?, {key})",
+                [date.fromisoformat(when), ids],
+            ) == [(Decimal(str(expected)),)]
+
+
+def test_arr_calendar_versions_fx_and_quarantine(built: dict[str, Path]) -> None:
+    database = built["default"]
+    months = _query(database, "SELECT month_end FROM intermediate.int_arr_month_ends ORDER BY 1")
+    assert len(months) == 12
+    assert months[0] == (date(2025, 11, 30),)
+    assert months[-1] == (date(2026, 10, 31),)
+    assert _query(
+        database,
+        "SELECT version, recurring_mrr FROM marts.arr_billing_monthly "
+        "WHERE order_number='O-000001' AND month_end='2026-10-31'",
+    ) == [(1, Decimal("1100"))]
+    assert _query(
+        database,
+        "SELECT version FROM intermediate.int_order_versions "
+        "WHERE order_number='O-000001' AND is_current",
+    ) == [(2,)]
+    assert _query(
+        database,
+        "SELECT count(*) FROM marts.arr_billing_monthly a JOIN marts.quarantine q "
+        "ON q.source_table='younium_orders' "
+        "AND q.record_id=a.order_number || ':' || a.version",
+    ) == [(0,)]
+    assert _query(
+        database,
+        "SELECT count(*) FROM marts.arr_crm_monthly a JOIN marts.quarantine q "
+        "ON q.source_table='hubspot_deals' AND q.record_id=a.deal_id",
+    ) == [(0,)]
+    rates = generate_data(seed=42).tables["ref_fx_rates"]
+    for when in (date(2026, 5, 31), date(2026, 9, 30), date(2026, 10, 31)):
+        rate = max(
+            (row for row in rates if row["currency"] == "EUR" and row["date"] <= when),
+            key=lambda row: row["date"],
+        )["rate_to_chf"]
+        expected = (Decimal("13200") * rate).quantize(Decimal("0.01"))
+        assert _query(
+            database,
+            "SELECT rate_to_chf, arr_chf FROM marts.arr_billing_monthly "
+            "WHERE order_number='O-000004' AND month_end=?",
+            [when],
+        ) == [(rate, expected)]
+        assert _query(
+            database,
+            "SELECT rate_to_chf, arr_chf FROM marts.arr_crm_monthly "
+            "WHERE deal_id='BG-D-000004' AND month_end=?",
+            [when],
+        ) == [(rate, expected)]
+
+
+def test_arr_bridge_totals_are_signed_complete_and_separate_grace_periods(
+    built: dict[str, Path],
+) -> None:
+    database = built["default"]
+    bridge = dict(_query(database, "SELECT category, amount_chf FROM marts.arr_bridge"))
+    assert set(bridge) == set(load_rules().arr_bridge_categories)
+    assert bridge["won_not_billed"] == Decimal("-30000.00")
+    assert bridge["not_yet_billed"] == Decimal("-90000.00")
+    assert bridge["timing"] == Decimal("-12000.00")
+    assert bridge["quarantined"] == Decimal("-12000.00")
+    gap = _query(
+        database,
+        "SELECT (SELECT sum(arr_chf) FROM marts.arr_billing_monthly "
+        "WHERE month_end='2026-10-31') - (SELECT sum(arr_chf) FROM marts.arr_crm_monthly "
+        "WHERE month_end='2026-10-31')",
+    )[0][0]
+    assert sum(bridge.values()) == gap
+    assert _query(
+        database,
+        "SELECT count(*) FROM marts.push_readiness WHERE deal_id='PLANT-B02'",
+    ) == [(0,)]
+
+
+def test_singular_bridge_test_rejects_a_one_cent_error(
+    built: dict[str, Path], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    database = tmp_path / "test.duckdb"
+    shutil.copyfile(built["default"], database)
+    monkeypatch.setenv("L2C_DB_PATH", str(database))
+    sql = (
+        built["default"].parent
+        / "target"
+        / "compiled"
+        / "l2c"
+        / "tests"
+        / "arr_bridge_balances.sql"
+    ).read_text(encoding="utf-8")
+    connection = duckdb.connect(str(database), config={"autoinstall_known_extensions": False})
+    try:
+        assert connection.execute(sql).fetchall() == []
+        connection.execute(
+            "UPDATE marts.arr_bridge SET amount_chf = amount_chf + 0.01 "
+            "WHERE category = 'unexplained'"
+        )
+        assert len(connection.execute(sql).fetchall()) == 1
+    finally:
+        connection.close()
 
 
 def test_missing_database_is_a_clear_nonzero_cli_error(

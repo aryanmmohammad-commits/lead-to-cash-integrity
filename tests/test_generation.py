@@ -44,6 +44,8 @@ def _row(records: Dataset, table: str, key: str, value: object) -> Row:
 
 def test_registry_and_manifest_cover_every_specified_case(manifest: dict) -> None:
     expected = {
+        "PLANT-B01",
+        "PLANT-B02",
         *[f"PLANT-A{index:02d}" for index in range(1, 21)],
         *[f"PLANT-P{index:02d}" for index in range(1, 7)],
         *[f"PLANT-Q{index:02d}" for index in range(1, 6)],

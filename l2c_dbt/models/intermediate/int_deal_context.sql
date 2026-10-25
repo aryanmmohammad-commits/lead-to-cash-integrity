@@ -16,8 +16,11 @@ select d.* exclude(owner_id), d.owner_id as source_owner_id,
     exists (select 1 from {{ ref('stg_younium__orders') }} suspect
             where suspect.hubspot_deal_id = d.deal_id
               and suspect.status <> {{ rule_value('draft_order_status') }}
-              and not exists (select 1 from {{ ref('int_order_versions') }} valid
-                              where valid.record_id = suspect.record_id)) as has_untrusted_order,
+              and (not exists (select 1 from {{ ref('int_order_versions') }} valid
+                               where valid.record_id = suspect.record_id)
+                   or exists (select 1 from {{ ref('quarantine') }} q
+                              where q.source_table = 'younium_orders'
+                                and q.record_id = suspect.record_id))) as has_untrusted_order,
     coalesce(a.unsynced_companies, 0) as unsynced_companies,
     coalesce(li.line_item_count, 0) as line_item_count,
     coalesce(li.unknown_sku_count, 0) as unknown_sku_count,

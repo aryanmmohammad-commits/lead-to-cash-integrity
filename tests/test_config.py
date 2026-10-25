@@ -72,6 +72,7 @@ def test_default_configs_are_complete() -> None:
         ("customer_lifecycle_stage", "not-a-stage"),
         ("open_deal_lead_status", "not-a-status"),
         ("auto_renew_severity", "urgent"),
+        ("arr_bridge_categories", ["timing", "timing"]),
     ],
 )
 def test_invalid_rules_name_the_key(tmp_path: Path, key: str, value: object) -> None:

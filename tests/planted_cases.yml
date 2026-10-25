@@ -1,7 +1,7 @@
 # Synthetic fixture contract; no real company data.
 # All supporting records are listed by canonical key.
 # expected_checks includes failed push checks; READY is never an exception.
-# A null bridge_category imposes no additional bridge requirement in this task.
+# A null bridge_category imposes no additional bridge requirement for that case.
 # R07 uses matching reason ambiguous; quarantine materializes ambiguous_domain.
 # Merge findings identify the newer duplicate; the older record is primary.
 schema_version: 1
@@ -34,6 +34,90 @@ primary_keys:
   ref_product_catalog:
   - sku
 cases:
+  PLANT-B02:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-B02
+      hubspot_contacts:
+      - contact_id: PLANT-T-B02
+      younium_accounts:
+      - account_number: PLANT-Y-B02
+      hubspot_deals:
+      - deal_id: PLANT-B02
+      hubspot_line_items:
+      - line_item_id: PLANT-B02-LI
+      younium_orders:
+      - order_number: PLANT-O-B02
+        version: 1
+      - order_number: PLANT-O-B02
+        version: 2
+      younium_order_charges:
+      - charge_id: PLANT-O-B02-V1-SEAT
+      - charge_id: PLANT-O-B02-V2-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-B02-V1-BOOK
+      - booking_id: PLANT-O-B02-V2-BOOK
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: quarantined
+    bridge_amount_chf: -12000
+    expected_billing_arr_chf:
+      '2026-10-31': 0
+    expected_crm_arr_chf:
+      '2026-10-31': 12000
+    expected_quarantine:
+    - source_table: younium_orders
+      record_id: PLANT-O-B02:1
+      column: version
+      reason: ambiguous
+    - source_table: younium_orders
+      record_id: PLANT-O-B02:2
+      column: version
+      reason: ambiguous
+  PLANT-B01:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-B01
+      hubspot_contacts:
+      - contact_id: PLANT-T-B01
+      younium_accounts:
+      - account_number: PLANT-Y-B01
+      hubspot_deals:
+      - deal_id: PLANT-B01
+      hubspot_line_items:
+      - line_item_id: PLANT-B01-LI
+      younium_orders:
+      - order_number: PLANT-O-B01
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-B01-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-B01-V1-BOOK
+    expected_checks: [R4]
+    check_records:
+    - check_id: R4
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-B01
+      severity: risk
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R4: null
+    bridge_category: timing
+    bridge_amount_chf: -12000
+    expected_billing_arr_chf:
+      '2026-10-31': 0
+    expected_crm_arr_chf:
+      '2026-10-31': 12000
+    expected_quarantine: []
   PLANT-A01:
     records:
       hubspot_companies:
@@ -1800,6 +1884,12 @@ cases:
       R10: 1200
     bridge_category: billing_only_change
     bridge_amount_chf: 1200
+    expected_billing_arr_chf:
+      '2026-09-30': 12000
+      '2026-10-31': 13200
+    expected_crm_arr_chf:
+      '2026-09-30': 12000
+      '2026-10-31': 12000
     expected_quarantine: []
   PLANT-R24:
     records:
@@ -1832,6 +1922,14 @@ cases:
     money_at_risk_chf: {}
     bridge_category: renewed_in_billing_only
     bridge_amount_chf: 12000
+    expected_billing_arr_chf:
+      '2026-08-31': 12000
+      '2026-09-30': 12000
+      '2026-10-31': 12000
+    expected_crm_arr_chf:
+      '2026-08-31': 12000
+      '2026-09-30': 0
+      '2026-10-31': 0
     expected_quarantine: []
   PLANT-R25:
     records:
@@ -1868,6 +1966,14 @@ cases:
     money_at_risk_chf:
       R11: null
     bridge_category: null
+    expected_billing_arr_chf:
+      '2026-08-31': 12000
+      '2026-09-30': 0
+      '2026-10-31': 0
+    expected_crm_arr_chf:
+      '2026-08-31': 12000
+      '2026-09-30': 0
+      '2026-10-31': 0
     expected_quarantine: []
   PLANT-R26:
     records:

@@ -1,5 +1,40 @@
 version: 2
 models:
+- name: arr_billing_monthly
+  data_tests:
+  - unique_combination:
+      arguments:
+        columns: [month_end, order_number]
+  columns:
+  - name: month_end
+    data_tests: [not_null]
+  - name: order_number
+    data_tests: [not_null]
+  - name: arr_chf
+    data_tests: [not_null]
+- name: arr_crm_monthly
+  data_tests:
+  - unique_combination:
+      arguments:
+        columns: [month_end, deal_id]
+  columns:
+  - name: month_end
+    data_tests: [not_null]
+  - name: deal_id
+    data_tests: [not_null]
+  - name: arr_chf
+    data_tests: [not_null]
+- name: arr_bridge
+  columns:
+  - name: category
+    data_tests:
+    - unique
+    - not_null
+    - accepted_values:
+        arguments:
+          values: '{{ var(''rules'')[''arr_bridge_categories''] }}'
+  - name: amount_chf
+    data_tests: [not_null]
 - name: quarantine
   columns:
   - name: source_table

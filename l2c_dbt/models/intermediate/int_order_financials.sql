@@ -14,3 +14,4 @@ select o.*, coalesce(c.recurring_mrr, 0) as recurring_mrr,
 from {{ ref('int_order_versions') }} o
 left join charges c using (order_number, version)
 left join {{ ref('int_company_context') }} company using (company_id)
+where {{ trusted('younium_orders', 'o') }}

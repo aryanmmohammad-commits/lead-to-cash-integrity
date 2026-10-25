@@ -101,6 +101,7 @@ class RulesConfig(ConfigModel):
     push_blocked_status: Text
     push_check_ids: Annotated[dict[Text, Text], Field(min_length=1)]
     merge_property: Text
+    arr_bridge_categories: TextList
     check_catalog: Annotated[dict[Text, CheckDefinition], Field(min_length=1)]
 
     @field_validator("as_of_date", mode="before")
@@ -128,6 +129,7 @@ class RulesConfig(ConfigModel):
         "severity_allowed",
         "pre_customer_lifecycle_stages",
         "customer_conflicting_lead_statuses",
+        "arr_bridge_categories",
     )
     @classmethod
     def validate_unique_values(cls, values: list[str]) -> list[str]:

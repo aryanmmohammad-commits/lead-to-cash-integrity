@@ -1,5 +1,22 @@
 version: 2
 models:
+- name: int_arr_month_ends
+  columns:
+  - name: month_end
+    data_tests: [unique, not_null]
+- name: int_arr_bridge_ledger
+  data_tests:
+  - unique_combination:
+      arguments:
+        columns: [object_type, record_id, category]
+  columns:
+  - name: category
+    data_tests:
+    - accepted_values:
+        arguments:
+          values: '{{ var(''rules'')[''arr_bridge_categories''] }}'
+  - name: amount_chf
+    data_tests: [not_null]
 - name: int_account_match
   columns:
   - name: account_number

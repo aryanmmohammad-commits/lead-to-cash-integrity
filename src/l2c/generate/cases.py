@@ -500,6 +500,25 @@ def unparseable_invoice_date(b: FixtureBuilder) -> None:
     invoice["service_period_start"] = "not-a-date"
 
 
+@planted("PLANT-B01")
+def billing_starts_after_month_end(b: FixtureBuilder) -> None:
+    s = b.bundle(start=b.rules.as_of_date - timedelta(days=20))
+    billing_start = month_end(b.rules.as_of_date) + timedelta(days=1)
+    _order(s)["effective_start"] = billing_start
+    _charge(s)["effective_start"] = billing_start
+    b.records["younium_bookings"][0]["booking_date"] = billing_start
+
+
+@planted("PLANT-B02")
+def overlapping_billing_versions(b: FixtureBuilder) -> None:
+    s = b.bundle()
+    order = b.add("younium_orders", **dict(_order(s)))
+    order.update(version=2, hubspot_deal_id=None)
+    charge = b.add("younium_order_charges", **dict(_charge(s)))
+    charge.update(charge_id=f"{order['order_number']}-V2-SEAT", version=2)
+    b.booking(order, event="change", classification="Expansion", change=Decimal("0"))
+
+
 def add_planted_cases(data: Dataset, rules: RulesConfig) -> dict[str, Dataset]:
     records = {}
     for case_id, function in sorted(CASES.items()):

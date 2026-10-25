@@ -4,6 +4,10 @@ with deals as (
         select 1 from {{ ref('int_source_quarantine') }} q
         where q.source_table = 'hubspot_deals' and q.record_id = d.record_id
     )
+      and not exists (
+          select 1 from {{ ref('int_arr_crm_months') }} unpriced
+          where unpriced.deal_id = d.deal_id and unpriced.month_rate_to_chf is null
+      )
 ), candidates as (
     select d.deal_id, o.order_number, o.version, o.record_id as order_record_id,
            o.effective_start, o.effective_end, o.currency as billing_currency,
@@ -11,6 +15,11 @@ with deals as (
     from deals d
     join {{ ref('int_order_versions') }} o on o.hubspot_deal_id = d.deal_id
     where o.status <> {{ sql_string(var('rules')['draft_order_status']) }}
+      and not exists (
+          select 1 from {{ ref('int_arr_order_months') }} ambiguous
+          where ambiguous.record_id = o.record_id
+            and (ambiguous.candidate_count > 1 or ambiguous.month_rate_to_chf is null)
+      )
       and ((d.motion = {{ sql_string(var('rules')['new_deal_motion']) }}
             and o.version = {{ var('rules')['initial_order_version'] }})
            or list_contains({{ string_list(var('rules')['change_deal_motions']) }}, d.motion))
