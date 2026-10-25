@@ -1,5 +1,6 @@
 import copy
 import io
+from collections import Counter
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date
@@ -13,9 +14,10 @@ import yaml
 from typer.testing import CliRunner
 
 from l2c import cli
-from l2c.config import load_mapping
+from l2c.config import load_mapping, load_rules
 from l2c.dbt_runner import BuildError, build_models, preview_table
 from l2c.generate import generate_data
+from l2c.generate.cases import CASES
 from l2c.generate.writer import write_files
 from l2c.load import load_files
 from l2c.logging_setup import setup_logging
@@ -452,6 +454,339 @@ def test_failed_builds_close_connections_and_do_not_touch_state(
         build_models(artifact_dir=tmp_path)
     assert _query(database, "SELECT * FROM state.run_manifest ORDER BY 1,2") == before
     assert _query(database, "SELECT count(*) FROM raw.hubspot_companies") == [(expected_count,)]
+
+
+@pytest.fixture(scope="module")
+def planted_contract() -> dict:
+    return yaml.safe_load(Path(__file__).with_name("planted_cases.yml").read_text(encoding="utf-8"))
+
+
+def _case_objects(case: dict) -> set[tuple[str, str]]:
+    types = {
+        "hubspot_companies": "company",
+        "hubspot_contacts": "contact",
+        "hubspot_deals": "deal",
+        "younium_accounts": "account",
+        "younium_invoices": "invoice",
+    }
+    objects = set()
+    for table, records in case["records"].items():
+        for record in records:
+            if table in types:
+                objects.add((types[table], str(next(iter(record.values())))))
+            elif table == "younium_orders":
+                objects.add(("order", record["order_number"]))
+                objects.add(("order_version", f"{record['order_number']}:{record['version']}"))
+    return objects
+
+
+@pytest.mark.parametrize("case_id", sorted(CASES))
+def test_every_planted_check_owner_severity_money_and_proposal_is_exact(
+    case_id: str,
+    built: dict[str, Path],
+    planted_contract: dict,
+) -> None:
+    database = built["default"]
+    case = planted_contract["cases"][case_id]
+    objects = _case_objects(case)
+    rows = _query(
+        database,
+        "SELECT check_id, object_type, record_id, owner_id, severity, "
+        "money_at_risk_chf, reason FROM marts.exceptions",
+    )
+    actual = Counter(row[:6] for row in rows if (row[1], row[2]) in objects)
+    expected = Counter(
+        (
+            row["check_id"],
+            row["object_type"],
+            row["record_id"],
+            row["owner_id"],
+            row["severity"],
+            row["money_at_risk_chf"],
+        )
+        for row in case["check_records"]
+    )
+    assert actual == expected
+    for finding in case["check_records"]:
+        if finding.get("reason"):
+            assert any(
+                row[0] == finding["check_id"]
+                and row[2] == finding["record_id"]
+                and row[6] == finding["reason"]
+                for row in rows
+            )
+    proposals = _query(
+        database,
+        "SELECT check_id, object_type, record_id, property, current_value, "
+        "proposed_value, requires_clear_first FROM marts.fix_proposals",
+    )
+    actual_proposals = Counter(row for row in proposals if (row[1], row[2]) in objects)
+    expected_proposals = []
+    for proposal in case["expected_proposals"]:
+        if proposal["action"] == "merge":
+            expected_proposals.append(
+                (
+                    "A7" if proposal["object_type"] == "company" else "A10",
+                    proposal["object_type"],
+                    proposal["secondary_id"],
+                    "merge",
+                    proposal["secondary_id"],
+                    proposal["primary_id"],
+                    False,
+                )
+            )
+        else:
+            expected_proposals.append(
+                (
+                    case["expected_checks"][0],
+                    "contact" if proposal["source_table"] == "hubspot_contacts" else "company",
+                    proposal["record_id"],
+                    proposal["property"],
+                    proposal["current_value"],
+                    proposal["proposed_value"],
+                    proposal["requires_clear_first"],
+                )
+            )
+    assert actual_proposals == Counter(expected_proposals)
+    if case["expected_push_status"]:
+        deal_ids = [key["deal_id"] for key in case["records"]["hubspot_deals"]]
+        push = _query(database, "SELECT deal_id, status, reasons FROM marts.push_readiness")
+        selected = [row for row in push if row[0] in deal_ids]
+        assert selected == [(case_id, case["expected_push_status"], case["expected_push_reasons"])]
+
+
+def test_scorecard_denominators_failed_record_counts_and_push_aggregation(
+    built: dict[str, Path],
+) -> None:
+    database = built["default"]
+    counts = dict(_query(database, "SELECT check_id, rows_checked FROM marts.audit_scorecard"))
+    assert len(counts) == 27
+    for check in ("A1", "A2", "A3", "A4", "A10", "A11"):
+        assert (
+            counts[check]
+            == _query(database, "SELECT count(*) FROM staging.stg_hubspot__contacts")[0][0]
+        )
+    for check in ("A5", "A6", "A12"):
+        assert (
+            counts[check]
+            == _query(
+                database, "SELECT count(*) FROM staging.stg_hubspot__deals WHERE is_closed_won"
+            )[0][0]
+        )
+    assert counts["A13"] == sum(
+        _query(
+            database,
+            "SELECT (SELECT count(*) FROM staging.stg_hubspot__deals), "
+            "(SELECT count(*) FROM staging.stg_hubspot__companies)",
+        )[0]
+    )
+    assert counts["P"] == _query(database, "SELECT count(*) FROM marts.push_readiness")[0][0]
+    assert _query(database, "SELECT rows_failed FROM marts.audit_scorecard WHERE check_id='P'") == [
+        (6,)
+    ]
+    assert _query(
+        database, "SELECT count(*) FROM marts.exceptions WHERE record_id='PLANT-P03'"
+    ) == [(2,)]
+    assert _query(database, "SELECT count(*) FROM marts.exceptions WHERE check_id='P'") == [(0,)]
+    assert (
+        counts["R10"]
+        == _query(database, "SELECT count(*) FROM staging.stg_younium__orders WHERE version>=2")[0][
+            0
+        ]
+    )
+    assert _query(database, "SELECT rows_failed FROM marts.audit_scorecard WHERE check_id='Q'") == [
+        (8,)
+    ]
+    assert _query(
+        database,
+        "SELECT count(*) FROM marts.audit_scorecard "
+        "WHERE pass_rate <> round(pass_rate,4) OR pass_rate NOT BETWEEN 0 AND 1",
+    ) == [(0,)]
+    all_rows = sum(
+        _query(database, f'SELECT count(*) FROM staging."{table}"')[0][0]
+        for (table,) in _query(
+            database,
+            "SELECT table_name FROM information_schema.tables WHERE table_schema='staging'",
+        )
+    )
+    assert counts["Q"] == all_rows
+
+
+def test_proposals_have_stable_ids_and_only_supported_audit_actions(built: dict[str, Path]) -> None:
+    rows = _query(
+        built["default"],
+        "SELECT proposal_id, check_id, object_type, record_id, property FROM marts.fix_proposals",
+    )
+    assert rows
+    assert len({row[0] for row in rows}) == len(rows)
+    for proposal_id, check_id, object_type, record_id, property_name in rows:
+        assert len(proposal_id) == 32
+        assert check_id in {"A1", "A2", "A3", "A7", "A9", "A10"}
+        assert object_type in {"company", "contact"}
+        assert record_id and property_name
+    assert _query(
+        built["default"],
+        "SELECT requires_clear_first FROM marts.fix_proposals WHERE record_id='PLANT-A03'",
+    ) == [(True,)]
+    assert _query(
+        built["default"],
+        "SELECT proposed_value FROM marts.fix_proposals WHERE record_id='PLANT-A05'",
+    ) == [(None,)]
+
+
+def test_r04_can_be_selected_with_the_requested_where_option(
+    built: dict[str, Path],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("L2C_DB_PATH", str(built["default"]))
+    result = CliRunner().invoke(
+        cli.app, ["show", "exceptions", "--where", "record_id like '%R04%'"]
+    )
+    assert result.exit_code == 0, result.output
+    assert "PLANT-R04" in result.output and "18000" in result.output
+    assert "PLANT-R05" not in result.output
+
+
+@pytest.fixture(scope="module")
+def configured_checks(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    directory = tmp_path_factory.mktemp("configured-checks")
+    data = generate_data().tables
+
+    def find(table: str, key: str, identifier: str) -> dict:
+        return next(row for row in data[table] if row[key] == identifier)
+
+    find("hubspot_contacts", "contact_id", "PLANT-A01").update(
+        lifecycle_stage="lead", lead_status="NEW", owner_id="OWN-000003"
+    )
+    find("hubspot_companies", "company_id", "PLANT-C-A01")["owner_id"] = "OWN-000002"
+    find("hubspot_deals", "deal_id", "PLANT-D-A01")["owner_id"] = "OWN-000004"
+    find("hubspot_companies", "company_id", "PLANT-A20")["owner_id"] = None
+    find("hubspot_deals", "deal_id", "PLANT-P01")["company_ids"] = None
+    find("hubspot_deals", "deal_id", "PLANT-P04")["currency"] = None
+    find("hubspot_line_items", "deal_id", "PLANT-P06")["sku"] = "no-such-product"
+    find("younium_orders", "account_number", "PLANT-R25")["cancellation_date"] = None
+    renewal = dict(find("hubspot_deals", "deal_id", "PLANT-D-R13"))
+    renewal.update(deal_id="PLANT-TEST-RENEWAL", motion="renewal", stage="contractsent")
+    data["hubspot_deals"].append(renewal)
+    credit = dict(find("younium_invoices", "invoice_number", "PLANT-R15"))
+    credit.update(
+        invoice_number="PLANT-TEST-DRAFT-CREDIT", is_credit=True, amount=-1000, status="Draft"
+    )
+    data["younium_invoices"].append(credit)
+    item = dict(find("hubspot_line_items", "deal_id", "PLANT-R11"))
+    item.update(line_item_id="PLANT-TEST-OTHER-PRICE", quantity=1, unit_price=500, amount=500)
+    data["hubspot_line_items"].append(item)
+    order = dict(find("younium_orders", "order_number", "PLANT-O-R22b"))
+    order["order_number"] = "PLANT-O-R22c"
+    data["younium_orders"].append(order)
+    charge = dict(find("younium_order_charges", "order_number", "PLANT-O-R22b"))
+    charge.update(charge_id="PLANT-O-R22c-V1-SEAT", order_number="PLANT-O-R22c")
+    data["younium_order_charges"].append(charge)
+    rules = load_rules().model_copy(
+        update={
+            "customer_lead_status": "UNQUALIFIED",
+            "amount_tolerance_pct": 2.1,
+            "start_date_tolerance_days": 16,
+            "push_line_item_tolerance_pct": 9.2,
+            "stale_open_deal_days": 31,
+            "won_not_billed_days": 31,
+            "term_tolerance_months": 12,
+            "renewal_window_days": 45,
+        }
+    )
+    mapping = CONFIG_DIR / "mapping.yml"
+    write_files(data, load_mapping(mapping), directory / "raw")
+    database = directory / "test.duckdb"
+    load_files(mapping_path=mapping, raw_dir=directory / "raw", db_path=database)
+    build_models(db_path=database, artifact_dir=directory, rules=rules)
+    return database
+
+
+def test_configured_tolerances_are_inclusive_and_not_hard_coded(configured_checks: Path) -> None:
+    rows = _query(configured_checks, "SELECT check_id, record_id FROM marts.exceptions")
+    for check_id, record_id in (
+        ("R3", "PLANT-R03"),
+        ("R4", "PLANT-R19"),
+        ("A8", "PLANT-A10"),
+        ("R1", "PLANT-R04"),
+        ("A12", "PLANT-A18"),
+    ):
+        assert (check_id, record_id) not in rows
+    assert _query(
+        configured_checks,
+        "SELECT status, reasons FROM marts.push_readiness WHERE deal_id='PLANT-P05'",
+    ) == [("READY", [])]
+    assert _query(
+        configured_checks,
+        "SELECT severity, money_at_risk_chf FROM marts.exceptions "
+        "WHERE check_id='R7' AND record_id='PLANT-R14'",
+    ) == [("info", Decimal("0.00"))]
+
+
+def test_contact_owners_customer_precedence_and_unknown_company_owners(
+    configured_checks: Path,
+    built: dict[str, Path],
+) -> None:
+    assert _query(
+        configured_checks,
+        "SELECT owner_id FROM marts.exceptions WHERE check_id='A3' AND record_id='PLANT-A01'",
+    ) == [("OWN-000002",)]
+    assert _query(
+        configured_checks,
+        "SELECT record_id, proposed_value FROM marts.fix_proposals "
+        "WHERE check_id='A3' AND record_id IN ('PLANT-A01','PLANT-A05') ORDER BY record_id",
+    ) == [("PLANT-A01", "OPEN_DEAL"), ("PLANT-A05", "UNQUALIFIED")]
+    assert _query(
+        configured_checks,
+        "SELECT owner_id FROM marts.exceptions WHERE check_id='A13' AND record_id='PLANT-A20'",
+    ) == [("unassigned",)]
+    proposal = "SELECT proposal_id FROM marts.fix_proposals WHERE record_id='PLANT-A05'"
+    assert _query(configured_checks, proposal) == _query(built["default"], proposal)
+
+
+def test_push_reports_missing_company_currency_and_unknown_sku(configured_checks: Path) -> None:
+    assert _query(
+        configured_checks,
+        "SELECT deal_id, status, reasons FROM marts.push_readiness "
+        "WHERE deal_id IN ('PLANT-P01','PLANT-P04','PLANT-P06') ORDER BY deal_id",
+    ) == [
+        ("PLANT-P01", "BLOCKED", ["P1", "P2"]),
+        ("PLANT-P04", "BLOCKED", ["P4"]),
+        ("PLANT-P06", "BLOCKED", ["P3"]),
+    ]
+
+
+def test_open_renewals_credits_and_ambiguous_seat_prices(configured_checks: Path) -> None:
+    assert _query(
+        configured_checks,
+        "SELECT count(*) FROM marts.exceptions WHERE check_id='R7' AND record_id='PLANT-R13'",
+    ) == [(0,)]
+    assert _query(
+        configured_checks,
+        "SELECT count(*) FROM marts.exceptions WHERE check_id='R8' AND record_id='PLANT-R15'",
+    ) == [(0,)]
+    assert _query(
+        configured_checks,
+        "SELECT money_at_risk_chf FROM marts.exceptions "
+        "WHERE check_id='R5' AND record_id='PLANT-R11'",
+    ) == [(None,)]
+    assert _query(
+        configured_checks,
+        "SELECT count(*) FROM marts.exceptions WHERE check_id='R11' AND record_id='PLANT-R25'",
+    ) == [(1,)]
+
+
+def test_duplicate_push_scorecard_counts_failed_deals_instead_of_duplicate_orders(
+    configured_checks: Path,
+) -> None:
+    assert _query(
+        configured_checks,
+        "SELECT record_id FROM marts.exceptions WHERE check_id='R9' ORDER BY record_id",
+    ) == [("PLANT-O-R22b",), ("PLANT-O-R22c",)]
+    assert _query(
+        configured_checks,
+        "SELECT rows_failed FROM marts.audit_scorecard WHERE check_id='R9'",
+    ) == [(1,)]
 
 
 def test_missing_database_is_a_clear_nonzero_cli_error(

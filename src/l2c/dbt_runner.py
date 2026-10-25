@@ -12,7 +12,7 @@ from uuid import uuid4
 
 import duckdb
 
-from l2c.config import load_mapping, load_rules
+from l2c.config import RulesConfig, load_mapping, load_rules
 from l2c.logging_setup import log_step
 from l2c.paths import REPO_ROOT, get_db_path, resolve_repo_path
 
@@ -74,13 +74,14 @@ def build_models(
     db_path: str | Path | None = None,
     artifact_dir: Path | None = None,
     run_id: str | None = None,
+    rules: RulesConfig | None = None,
 ) -> BuildResult:
     started = perf_counter()
     run_id = run_id or uuid4().hex
     result = None
     try:
         variables = {
-            "rules": load_rules().model_dump(mode="json"),
+            "rules": (rules or load_rules()).model_dump(mode="json"),
             "mapping": load_mapping(mapping_path).model_dump(mode="json"),
         }
         database = resolve_repo_path(db_path) if db_path is not None else get_db_path()
@@ -127,7 +128,9 @@ def build_models(
         )
 
 
-def preview_table(table: str, *, db_path: str | Path | None = None) -> TablePreview:
+def preview_table(
+    table: str, *, db_path: str | Path | None = None, where: str | None = None
+) -> TablePreview:
     database = resolve_repo_path(db_path) if db_path is not None else get_db_path()
     if not database.is_file():
         raise ValueError(f"Database {database} does not exist; run l2c load first")
@@ -135,7 +138,9 @@ def preview_table(table: str, *, db_path: str | Path | None = None) -> TablePrev
     if len(parts) not in (1, 2) or any(not part for part in parts):
         raise ValueError("Use a table name or schema.table")
     connection = duckdb.connect(
-        str(database), read_only=True, config={"autoinstall_known_extensions": False}
+        str(database),
+        read_only=True,
+        config={"autoinstall_known_extensions": False, "enable_external_access": False},
     )
     try:
         query = (
@@ -151,7 +156,13 @@ def preview_table(table: str, *, db_path: str | Path | None = None) -> TablePrev
         if len(candidates) != 1:
             raise ValueError(f"Table {table!r} is ambiguous; use schema.table")
         qualified = ".".join('"' + part.replace('"', '""') + '"' for part in candidates[0])
-        cursor = connection.execute(f"SELECT * FROM {qualified} LIMIT 50")
-        return TablePreview([column[0] for column in cursor.description], cursor.fetchall())
+        try:
+            relation = connection.sql(f"SELECT * FROM {qualified}")
+            if where is not None:
+                relation = relation.filter(where)
+            relation = relation.limit(50)
+            return TablePreview(relation.columns, relation.fetchall())
+        except duckdb.Error as exc:
+            raise ValueError(f"Invalid --where filter or table query: {exc}") from exc
     finally:
         connection.close()

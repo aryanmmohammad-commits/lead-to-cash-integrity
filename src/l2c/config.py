@@ -45,6 +45,12 @@ class ConfigModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class CheckDefinition(ConfigModel):
+    description: Text
+    severity: Text
+    denominator: Text
+
+
 class RulesConfig(ConfigModel):
     as_of_date: date
     base_currency: Annotated[str, StringConstraints(pattern=r"^[A-Z]{3}$")]
@@ -73,6 +79,29 @@ class RulesConfig(ConfigModel):
     new_deal_motion: Text
     change_deal_motions: TextList
     quarantine_reasons: TextList
+    customer_lifecycle_stage: Text
+    opportunity_lifecycle_stage: Text
+    lead_lifecycle_stage: Text
+    pre_customer_lifecycle_stages: TextList
+    customer_conflicting_lead_statuses: TextList
+    open_deal_lead_status: Text
+    active_order_status: Text
+    cancelled_order_status: Text
+    posted_invoice_status: Text
+    recurring_charge_type: Text
+    renewal_deal_motion: Text
+    months_per_year: Annotated[int, Field(strict=True, gt=0)]
+    amount_comparison_decimals: NonNegativeInt
+    scorecard_decimals: NonNegativeInt
+    finance_owner_id: Text
+    unassigned_owner_id: Text
+    severity_allowed: TextList
+    auto_renew_severity: Text
+    push_ready_status: Text
+    push_blocked_status: Text
+    push_check_ids: Annotated[dict[Text, Text], Field(min_length=1)]
+    merge_property: Text
+    check_catalog: Annotated[dict[Text, CheckDefinition], Field(min_length=1)]
 
     @field_validator("as_of_date", mode="before")
     @classmethod
@@ -96,6 +125,9 @@ class RulesConfig(ConfigModel):
         "generic_email_domains",
         "change_deal_motions",
         "quarantine_reasons",
+        "severity_allowed",
+        "pre_customer_lifecycle_stages",
+        "customer_conflicting_lead_statuses",
     )
     @classmethod
     def validate_unique_values(cls, values: list[str]) -> list[str]:
@@ -117,6 +149,40 @@ class RulesConfig(ConfigModel):
         if info.data.get("new_deal_motion") in values:
             raise ValueError("must not contain new_deal_motion")
         return values
+
+    @field_validator(
+        "customer_lifecycle_stage", "opportunity_lifecycle_stage", "lead_lifecycle_stage"
+    )
+    @classmethod
+    def validate_evidence_stage(cls, value: str, info: ValidationInfo) -> str:
+        if value not in info.data.get("lifecycle_order", []):
+            raise ValueError("must be a member of lifecycle_order")
+        return value
+
+    @field_validator("open_deal_lead_status")
+    @classmethod
+    def validate_open_status(cls, value: str, info: ValidationInfo) -> str:
+        if value not in info.data.get("lead_status_allowed", []):
+            raise ValueError("must be a member of lead_status_allowed")
+        return value
+
+    @field_validator("auto_renew_severity")
+    @classmethod
+    def validate_auto_renew_severity(cls, value: str, info: ValidationInfo) -> str:
+        if value not in info.data.get("severity_allowed", []):
+            raise ValueError("must be a member of severity_allowed")
+        return value
+
+    @field_validator("check_catalog")
+    @classmethod
+    def validate_check_catalog(
+        cls, value: dict[str, CheckDefinition], info: ValidationInfo
+    ) -> dict[str, CheckDefinition]:
+        allowed = info.data.get("severity_allowed", [])
+        for check_id, definition in value.items():
+            if definition.severity not in allowed:
+                raise ValueError(f"{check_id}.severity must be a member of severity_allowed")
+        return value
 
     @field_validator("closed_won_stage", "closed_lost_stage")
     @classmethod
@@ -179,6 +245,7 @@ class TableMapping(ConfigModel):
     format: FileFormat
     columns: Annotated[dict[Identifier, Text], Field(min_length=1)]
     values: dict[Identifier, dict[str, str]] = Field(default_factory=dict)
+    properties: dict[Identifier, Identifier] = Field(default_factory=dict)
 
     @field_validator("values")
     @classmethod

@@ -555,7 +555,7 @@ cases:
       object_type: contact
       record_id: PLANT-A15
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: unassigned
       money_at_risk_chf: null
     expected_proposals: []
     expected_push_status: null

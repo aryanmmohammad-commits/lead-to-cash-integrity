@@ -1,4 +1,6 @@
 hubspot_companies:
+  properties:
+    territory: territory
   file: hubspot_companies.csv
   format:
     delimiter: ","
@@ -20,6 +22,9 @@ hubspot_companies:
   values: {}
 
 hubspot_contacts:
+  properties:
+    lifecycle_stage: lifecyclestage
+    lead_status: hs_lead_status
   file: hubspot_contacts.csv
   format:
     delimiter: ","

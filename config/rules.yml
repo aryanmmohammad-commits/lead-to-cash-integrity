@@ -29,3 +29,154 @@ initial_order_version: 1
 new_deal_motion: new
 change_deal_motions: [upsell, renewal]
 quarantine_reasons: [ambiguous_domain, generic_email_domain, no_fx_rate, unparseable_amount, unparseable_date, id_corrupted_by_excel, ambiguous]
+
+# Audit, push, reconciliation and output contracts.
+customer_lifecycle_stage: customer
+opportunity_lifecycle_stage: opportunity
+lead_lifecycle_stage: lead
+pre_customer_lifecycle_stages:
+- lead
+- marketingqualifiedlead
+- salesqualifiedlead
+- opportunity
+customer_conflicting_lead_statuses:
+- NEW
+- OPEN
+- IN_PROGRESS
+- ATTEMPTED_TO_CONTACT
+- CONNECTED
+open_deal_lead_status: OPEN_DEAL
+active_order_status: Active
+cancelled_order_status: Cancelled
+posted_invoice_status: Posted
+recurring_charge_type: Recurring
+renewal_deal_motion: renewal
+months_per_year: 12
+amount_comparison_decimals: 4
+scorecard_decimals: 4
+finance_owner_id: finance
+unassigned_owner_id: unassigned
+auto_renew_severity: info
+severity_allowed:
+- hygiene
+- risk
+- leak
+- info
+push_ready_status: READY
+push_blocked_status: BLOCKED
+push_check_ids:
+  company_count: P1
+  account_number: P2
+  skus: P3
+  required_fields: P4
+  line_total: P5
+merge_property: merge
+check_catalog:
+  A1:
+    description: Invalid or missing contact lifecycle
+    severity: hygiene
+    denominator: contacts
+  A2:
+    description: Lifecycle contradicts deal evidence
+    severity: hygiene
+    denominator: contacts
+  A3:
+    description: Lead status contradicts customer or open-deal evidence
+    severity: hygiene
+    denominator: contacts
+  A4:
+    description: Missing original source
+    severity: hygiene
+    denominator: contacts
+  A5:
+    description: Won deal has blank or zero amount
+    severity: hygiene
+    denominator: closedwon_deals
+  A6:
+    description: Won deal has missing contract fields
+    severity: hygiene
+    denominator: closedwon_deals
+  A7:
+    description: Duplicate company domains
+    severity: hygiene
+    denominator: companies
+  A8:
+    description: Stale open deal
+    severity: hygiene
+    denominator: open_deals
+  A9:
+    description: Missing territory or tier
+    severity: hygiene
+    denominator: companies
+  A10:
+    description: Duplicate contact emails
+    severity: hygiene
+    denominator: contacts
+  A11:
+    description: Contact has no company
+    severity: hygiene
+    denominator: contacts
+  A12:
+    description: Impossible won-deal dates
+    severity: hygiene
+    denominator: closedwon_deals
+  A13:
+    description: Missing or unknown owner
+    severity: hygiene
+    denominator: deals_and_companies
+  P:
+    description: Won new deals ready for billing push
+    severity: risk
+    denominator: push_candidates
+  R1:
+    description: Won new deal not billed after grace period
+    severity: leak
+    denominator: new_won_deals
+  R2:
+    description: Billing order has no won CRM deal
+    severity: leak
+    denominator: active_orders
+  R3:
+    description: CRM and version-one recurring value differ
+    severity: leak
+    denominator: new_won_deals
+  R4:
+    description: Contract and billing start dates differ
+    severity: risk
+    denominator: won_deals
+  R5:
+    description: CRM and recurring charge seat totals differ
+    severity: leak
+    denominator: won_deals
+  R6:
+    description: Won change deal has no billing version
+    severity: leak
+    denominator: change_won_deals
+  R7:
+    description: Renewal window has no open renewal deal
+    severity: leak
+    denominator: active_orders
+  R8:
+    description: Uncredited invoice after cancellation
+    severity: leak
+    denominator: posted_invoices
+  R9:
+    description: New deal pushed to multiple orders
+    severity: leak
+    denominator: new_deals_with_order
+  R10:
+    description: Billing value changed without a CRM deal
+    severity: leak
+    denominator: changed_versions
+  R11:
+    description: Cancelled account still has customer contacts
+    severity: hygiene
+    denominator: cancelled_accounts
+  R12:
+    description: Multiple billing accounts reference one company
+    severity: hygiene
+    denominator: accounts
+  Q:
+    description: Quarantined source records
+    severity: hygiene
+    denominator: all_rows

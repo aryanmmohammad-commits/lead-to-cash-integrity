@@ -40,6 +40,7 @@ def _charge(scenario: Scenario) -> Row:
 def blank_lifecycle(b: FixtureBuilder) -> None:
     s = b.bundle(main="contact", billed=False, stage=b.rules.open_deal_stages[0])
     _contact(s)["lifecycle_stage"] = None
+    s.deal["close_date"] = b.rules.as_of_date + timedelta(days=1)
 
 
 @planted("PLANT-A02")

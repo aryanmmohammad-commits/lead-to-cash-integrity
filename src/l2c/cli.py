@@ -155,10 +155,13 @@ def slack() -> None:
 @app.command()
 def show(
     table: Annotated[str, typer.Argument(help="Table name, optionally prefixed by schema.")],
+    where: Annotated[
+        str | None, typer.Option("--where", help="Optional SQL filter expression.")
+    ] = None,
 ) -> None:
     """Preview a database table."""
     try:
-        preview = preview_table(table)
+        preview = preview_table(table, where=where)
     except (ValueError, OSError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc

@@ -21,3 +21,70 @@ models:
         arguments:
           values: '{{ var(''rules'')[''quarantine_reasons''] }}'
     - not_null
+- name: exceptions
+  columns:
+  - name: check_id
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: '{{ (var(''rules'')[''check_catalog''].keys() | list) + (var(''rules'')[''push_check_ids''].values()
+            | list) }}'
+  - name: severity
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: '{{ var(''rules'')[''severity_allowed''] }}'
+  - name: record_id
+    data_tests:
+    - not_null
+  - name: money_at_risk_chf
+    data_tests:
+    - nonnegative
+- name: push_readiness
+  columns:
+  - name: deal_id
+    data_tests:
+    - unique
+    - not_null
+  - name: status
+    data_tests:
+    - accepted_values:
+        arguments:
+          values: '{{ [var(''rules'')[''push_ready_status''],var(''rules'')[''push_blocked_status'']]
+            }}'
+- name: audit_scorecard
+  columns:
+  - name: check_id
+    data_tests:
+    - unique
+    - not_null
+    - accepted_values:
+        arguments:
+          values: '{{ var(''rules'')[''check_catalog''].keys() | list }}'
+  - name: pass_rate
+    data_tests:
+    - not_null
+    - probability
+- name: fix_proposals
+  columns:
+  - name: proposal_id
+    data_tests:
+    - unique
+    - not_null
+  - name: check_id
+    data_tests:
+    - accepted_values:
+        arguments:
+          values: '{{ (var(''rules'')[''check_catalog''].keys() | list) + (var(''rules'')[''push_check_ids''].values()
+            | list) }}'
+  - name: record_id
+    data_tests:
+    - not_null
+  - name: property
+    data_tests:
+    - not_null
+  - name: requires_clear_first
+    data_tests:
+    - not_null
