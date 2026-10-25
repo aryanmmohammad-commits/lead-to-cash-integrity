@@ -46,7 +46,7 @@ def test_registry_and_manifest_cover_every_specified_case(manifest: dict) -> Non
     expected = {
         *[f"PLANT-A{index:02d}" for index in range(1, 21)],
         *[f"PLANT-P{index:02d}" for index in range(1, 7)],
-        *[f"PLANT-Q{index:02d}" for index in range(1, 5)],
+        *[f"PLANT-Q{index:02d}" for index in range(1, 6)],
         *[f"PLANT-R{index:02d}" for index in range(1, 30) if index != 10],
     }
     assert set(CASES) == set(manifest["cases"]) == expected
@@ -522,6 +522,7 @@ def test_matching_and_quarantine_inputs(generated: GeneratedData, manifest: dict
     )
     assert _only(cases["PLANT-Q03"], "younium_accounts")["hubspot_company_id"] == "1.23457E+11"
     assert _only(cases["PLANT-Q04"], "younium_invoices")["amount"] == "n/a"
+    assert _only(cases["PLANT-Q05"], "younium_invoices")["service_period_start"] == "not-a-date"
     assert _only(cases["PLANT-Q02"], "hubspot_deals")["currency"] == "USD"
     assert _only(cases["PLANT-Q02"], "younium_orders")["currency"] == "USD"
     assert "USD" not in {row["currency"] for row in generated.tables["ref_fx_rates"]}

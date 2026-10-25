@@ -1,0 +1,23 @@
+version: 2
+models:
+- name: quarantine
+  columns:
+  - name: source_table
+    data_tests:
+    - not_null
+  - name: record_id
+    data_tests:
+    - not_null
+  - name: column
+    quote: true
+    data_tests:
+    - not_null
+  - name: raw_value
+    data_tests:
+    - not_null
+  - name: reason
+    data_tests:
+    - accepted_values:
+        arguments:
+          values: '{{ var(''rules'')[''quarantine_reasons''] }}'
+    - not_null

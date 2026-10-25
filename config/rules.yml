@@ -22,3 +22,10 @@ sanity_max_drop_pct: 20
 arr_months: 12
 term_tolerance_months: 1
 generic_email_domains: [gmail.com, outlook.com, hotmail.com, yahoo.com, icloud.com, gmx.ch, gmx.de, gmx.net, web.de, bluewin.ch]
+
+# Matching rules and allowed values for our own quarantine output.
+draft_order_status: Draft
+initial_order_version: 1
+new_deal_motion: new
+change_deal_motions: [upsell, renewal]
+quarantine_reasons: [ambiguous_domain, generic_email_domain, no_fx_rate, unparseable_amount, unparseable_date, id_corrupted_by_excel, ambiguous]

@@ -68,6 +68,11 @@ class RulesConfig(ConfigModel):
     arr_months: Annotated[int, Field(strict=True, gt=0)]
     term_tolerance_months: NonNegativeInt
     generic_email_domains: TextList
+    draft_order_status: Text
+    initial_order_version: Annotated[int, Field(strict=True, gt=0)]
+    new_deal_motion: Text
+    change_deal_motions: TextList
+    quarantine_reasons: TextList
 
     @field_validator("as_of_date", mode="before")
     @classmethod
@@ -89,6 +94,8 @@ class RulesConfig(ConfigModel):
         "original_source_allowed",
         "open_deal_stages",
         "generic_email_domains",
+        "change_deal_motions",
+        "quarantine_reasons",
     )
     @classmethod
     def validate_unique_values(cls, values: list[str]) -> list[str]:
@@ -103,6 +110,13 @@ class RulesConfig(ConfigModel):
         if value is not None and allowed is not None and value not in allowed:
             raise ValueError("must be null or a member of lead_status_allowed")
         return value
+
+    @field_validator("change_deal_motions")
+    @classmethod
+    def validate_change_motions(cls, values: list[str], info: ValidationInfo) -> list[str]:
+        if info.data.get("new_deal_motion") in values:
+            raise ValueError("must not contain new_deal_motion")
+        return values
 
     @field_validator("closed_won_stage", "closed_lost_stage")
     @classmethod

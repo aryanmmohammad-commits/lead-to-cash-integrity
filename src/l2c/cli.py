@@ -3,9 +3,11 @@
 from pathlib import Path
 from typing import Annotated, NoReturn
 
+import pandas as pd
 import typer
 
 from l2c.config import ConfigError
+from l2c.dbt_runner import build_models, preview_table
 from l2c.generate import ExportFormat, Profile, generate_files
 from l2c.load import load_files
 from l2c.logging_setup import setup_logging
@@ -95,7 +97,17 @@ def load_sources(
 @app.command()
 def build(mapping: MappingOption = DEFAULT_MAPPING) -> None:
     """Build and test dbt models with the source mapping."""
-    _not_built()
+    logger = setup_logging()
+    try:
+        result = build_models(mapping_path=mapping)
+    except (ConfigError, ValueError, OSError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    finally:
+        for handler in logger.handlers[:]:
+            logger.removeHandler(handler)
+            handler.close()
+    typer.echo(f"dbt build passed ({result.nodes} models/tests); run {result.run_id}")
 
 
 @app.command()
@@ -141,9 +153,16 @@ def slack() -> None:
 
 
 @app.command()
-def show() -> None:
+def show(
+    table: Annotated[str, typer.Argument(help="Table name, optionally prefixed by schema.")],
+) -> None:
     """Preview a database table."""
-    _not_built()
+    try:
+        preview = preview_table(table)
+    except (ValueError, OSError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(pd.DataFrame(preview.rows, columns=preview.columns).to_string(index=False))
 
 
 @app.command()

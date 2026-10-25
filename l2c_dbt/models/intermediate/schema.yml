@@ -1,0 +1,48 @@
+version: 2
+models:
+- name: int_account_match
+  columns:
+  - name: account_number
+    data_tests:
+    - unique
+    - not_null
+- name: int_deal_order_match
+  columns:
+  - name: deal_id
+    data_tests:
+    - unique
+    - not_null
+- name: int_fx
+  data_tests:
+  - unique_combination:
+      arguments:
+        columns:
+        - currency
+        - rate_date
+  columns:
+  - name: currency
+    data_tests:
+    - not_null
+  - name: rate_date
+    data_tests:
+    - not_null
+  - name: rate_to_chf
+    data_tests:
+    - not_null
+- name: int_order_versions
+  data_tests:
+  - unique_combination:
+      arguments:
+        columns:
+        - order_number
+        - version
+  columns:
+  - name: order_number
+    data_tests:
+    - not_null
+  - name: version
+    data_tests:
+    - not_null
+  - name: is_current
+    data_tests:
+    - not_null

@@ -493,6 +493,12 @@ def unparseable_invoice_amount(b: FixtureBuilder) -> None:
     b.invoice(_order(b.bundle(main="company")), record_id=b.case_id, amount="n/a")
 
 
+@planted("PLANT-Q05")
+def unparseable_invoice_date(b: FixtureBuilder) -> None:
+    invoice = b.invoice(_order(b.bundle(main="company")), record_id=b.case_id)
+    invoice["service_period_start"] = "not-a-date"
+
+
 def add_planted_cases(data: Dataset, rules: RulesConfig) -> dict[str, Dataset]:
     records = {}
     for case_id, function in sorted(CASES.items()):

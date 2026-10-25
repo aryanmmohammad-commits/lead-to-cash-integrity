@@ -1,4 +1,4 @@
-# Synthetic fixture contract for Task 2; no real company data.
+# Synthetic fixture contract; no real company data.
 # All supporting records are listed by canonical key.
 # expected_checks includes failed push checks; READY is never an exception.
 # A null bridge_category imposes no additional bridge requirement in this task.
@@ -973,6 +973,14 @@ cases:
       record_id: PLANT-Q02
       column: currency
       reason: no_fx_rate
+    - source_table: younium_orders
+      record_id: PLANT-O-Q02:1
+      column: currency
+      reason: no_fx_rate
+    - source_table: younium_bookings
+      record_id: PLANT-O-Q02-V1-BOOK
+      column: currency
+      reason: no_fx_rate
   PLANT-Q03:
     records:
       hubspot_companies:
@@ -1024,6 +1032,39 @@ cases:
       record_id: PLANT-Q04
       column: amount
       reason: unparseable_amount
+  PLANT-Q05:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-Q05
+      hubspot_contacts:
+      - contact_id: PLANT-T-Q05
+      younium_accounts:
+      - account_number: PLANT-Y-Q05
+      hubspot_deals:
+      - deal_id: PLANT-D-Q05
+      hubspot_line_items:
+      - line_item_id: PLANT-D-Q05-LI
+      younium_orders:
+      - order_number: PLANT-O-Q05
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-Q05-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-Q05-V1-BOOK
+      younium_invoices:
+      - invoice_number: PLANT-Q05
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_quarantine:
+    - source_table: younium_invoices
+      record_id: PLANT-Q05
+      column: service_period_start
+      reason: unparseable_date
   PLANT-R01:
     records:
       hubspot_companies:

@@ -1,0 +1,142 @@
+version: 2
+models:
+- name: stg_hubspot__companies
+  columns:
+  - name: company_id
+    data_tests:
+    - not_null:
+        config:
+          where: is_parse_valid
+    - unique:
+        config:
+          where: is_parse_valid
+- name: stg_hubspot__contacts
+  columns:
+  - name: contact_id
+    data_tests:
+    - not_null:
+        config:
+          where: is_parse_valid
+    - unique:
+        config:
+          where: is_parse_valid
+- name: stg_hubspot__deals
+  columns:
+  - name: deal_id
+    data_tests:
+    - not_null:
+        config:
+          where: is_parse_valid
+    - unique:
+        config:
+          where: is_parse_valid
+- name: stg_hubspot__line_items
+  columns:
+  - name: line_item_id
+    data_tests:
+    - not_null:
+        config:
+          where: is_parse_valid
+    - unique:
+        config:
+          where: is_parse_valid
+- name: stg_hubspot__owners
+  columns:
+  - name: owner_id
+    data_tests:
+    - not_null:
+        config:
+          where: is_parse_valid
+    - unique:
+        config:
+          where: is_parse_valid
+- name: stg_younium__accounts
+  columns:
+  - name: account_number
+    data_tests:
+    - not_null:
+        config:
+          where: is_parse_valid
+    - unique:
+        config:
+          where: is_parse_valid
+- name: stg_younium__orders
+  columns:
+  - name: order_number
+    data_tests:
+    - not_null:
+        config:
+          where: is_parse_valid
+  - name: version
+    data_tests:
+    - not_null:
+        config:
+          where: is_parse_valid
+  data_tests:
+  - unique_combination:
+      arguments:
+        columns:
+        - order_number
+        - version
+      config:
+        where: is_parse_valid
+- name: stg_younium__order_charges
+  columns:
+  - name: charge_id
+    data_tests:
+    - not_null:
+        config:
+          where: is_parse_valid
+    - unique:
+        config:
+          where: is_parse_valid
+- name: stg_younium__invoices
+  columns:
+  - name: invoice_number
+    data_tests:
+    - not_null:
+        config:
+          where: is_parse_valid
+    - unique:
+        config:
+          where: is_parse_valid
+- name: stg_younium__bookings
+  columns:
+  - name: booking_id
+    data_tests:
+    - not_null:
+        config:
+          where: is_parse_valid
+    - unique:
+        config:
+          where: is_parse_valid
+- name: stg_ref__fx_rates
+  columns:
+  - name: currency
+    data_tests:
+    - not_null:
+        config:
+          where: is_parse_valid
+  - name: date
+    data_tests:
+    - not_null:
+        config:
+          where: is_parse_valid
+  data_tests:
+  - unique_combination:
+      arguments:
+        columns:
+        - currency
+        - date
+      config:
+        where: is_parse_valid
+- name: stg_ref__product_catalog
+  columns:
+  - name: sku
+    data_tests:
+    - not_null:
+        config:
+          where: is_parse_valid
+    - unique:
+        config:
+          where: is_parse_valid

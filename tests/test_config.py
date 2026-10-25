@@ -66,6 +66,8 @@ def test_default_configs_are_complete() -> None:
         ("closed_lost_stage", "closedwon"),
         ("territory_by_country", {"DACH": ["Germany"], "Other": ["Germany"]}),
         ("unknown_setting", 1),
+        ("initial_order_version", 0),
+        ("change_deal_motions", ["new", "upsell"]),
     ],
 )
 def test_invalid_rules_name_the_key(tmp_path: Path, key: str, value: object) -> None:

@@ -168,10 +168,11 @@ def test_halved_source_is_blocked_and_failed_runs_never_become_baselines(
     remaining = _cut_deals(directory)
     for run_id in ("blocked", "blocked-again"):
         with pytest.raises(
-            SanityGateError, match="hubspot_deals.*50.00%.*sanity_max_drop_pct=20%"
+            SanityGateError, match="hubspot_deals.*sanity_max_drop_pct=20%"
         ) as error:
             load_files(raw_dir=directory, run_id=run_id)
         assert error.value.run_id == run_id
+        assert f"{first.row_counts['hubspot_deals']} -> {remaining} rows" in str(error.value)
         assert "--force" in str(error.value)
         assert _raw_snapshot(database) == before
         with _read_db(database) as connection:

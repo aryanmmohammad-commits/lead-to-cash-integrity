@@ -1,0 +1,17 @@
+version: 2
+sources:
+- name: raw
+  schema: raw
+  tables:
+  - name: hubspot_companies
+  - name: hubspot_contacts
+  - name: hubspot_deals
+  - name: hubspot_line_items
+  - name: hubspot_owners
+  - name: younium_accounts
+  - name: younium_orders
+  - name: younium_order_charges
+  - name: younium_invoices
+  - name: younium_bookings
+  - name: ref_fx_rates
+  - name: ref_product_catalog

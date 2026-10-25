@@ -1,0 +1,10 @@
+l2c:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('L2C_DB_PATH', 'data/l2c.duckdb') }}"
+      schema: main
+      threads: 1
+      settings:
+        autoinstall_known_extensions: false
