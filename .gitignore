@@ -1,0 +1,14 @@
+.venv/
+data/
+out/
+*.duckdb
+l2c_dbt/target/
+l2c_dbt/logs/
+l2c_dbt/dbt_packages/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/

@@ -1,0 +1,24 @@
+as_of_date: "2026-10-31"
+base_currency: CHF
+lifecycle_order: [subscriber, lead, marketingqualifiedlead, salesqualifiedlead, opportunity, customer, evangelist, other]
+lead_status_allowed: [NEW, OPEN, IN_PROGRESS, OPEN_DEAL, UNQUALIFIED, ATTEMPTED_TO_CONTACT, CONNECTED, BAD_TIMING]
+customer_lead_status: null          # null = propose clearing the field
+original_source_allowed: [ORGANIC_SEARCH, PAID_SEARCH, EMAIL_MARKETING, SOCIAL_MEDIA, REFERRALS, OTHER_CAMPAIGNS, DIRECT_TRAFFIC, OFFLINE, PAID_SOCIAL]
+open_deal_stages: [appointmentscheduled, qualifiedtobuy, presentationscheduled, decisionmakerboughtin, contractsent]
+closed_won_stage: closedwon
+closed_lost_stage: closedlost
+stale_open_deal_days: 30
+territory_by_country:
+  DACH: [Switzerland, Germany, Austria, Liechtenstein]
+  France: [France]
+default_territory: Other
+won_not_billed_days: 30
+amount_tolerance_pct: 2.0           # pct = abs(order_acv - deal_acv) / deal_acv * 100, rounded to 4 decimals
+start_date_tolerance_days: 15
+renewal_window_days: 60
+push_line_item_tolerance_pct: 1.0
+stale_exception_days: 14
+sanity_max_drop_pct: 20
+arr_months: 12
+term_tolerance_months: 1
+generic_email_domains: [gmail.com, outlook.com, hotmail.com, yahoo.com, icloud.com, gmx.ch, gmx.de, gmx.net, web.de, bluewin.ch]
