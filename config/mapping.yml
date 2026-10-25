@@ -11,6 +11,7 @@ hubspot_companies:
     name: name
     domain: domain
     country: country
+    city: city
     owner_id: hubspot_owner_id
     territory: territory
     tier: tier

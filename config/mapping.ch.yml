@@ -1,0 +1,219 @@
+hubspot_companies:
+  file: hubspot_companies.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    company_id: hs_object_id
+    name: name
+    domain: domain
+    country: country
+    city: city
+    owner_id: hubspot_owner_id
+    territory: territory
+    tier: tier
+    younium_account_number: younium_account_number
+    created_at: createdate
+  values: {}
+hubspot_contacts:
+  file: hubspot_contacts.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    contact_id: hs_object_id
+    email: email
+    company_id: associatedcompanyid
+    lifecycle_stage: lifecyclestage
+    lead_status: hs_lead_status
+    original_source: hs_analytics_source
+    owner_id: hubspot_owner_id
+    created_at: createdate
+  values: {}
+hubspot_deals:
+  file: hubspot_deals.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    deal_id: hs_object_id
+    deal_name: dealname
+    company_ids: associated_company_id
+    deal_type: dealtype
+    motion: deal_motion
+    stage: dealstage
+    amount: amount
+    currency: deal_currency_code
+    close_date: closedate
+    contract_start: contract_start_date
+    contract_end: contract_end_date
+    term_months: term_months
+    billing_frequency: billing_frequency
+    owner_id: hubspot_owner_id
+    created_at: createdate
+  values: {}
+hubspot_line_items:
+  file: hubspot_line_items.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    line_item_id: hs_object_id
+    deal_id: deal_id
+    sku: hs_sku
+    quantity: quantity
+    unit_price: price
+    amount: amount
+  values: {}
+hubspot_owners:
+  file: hubspot_owners.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    owner_id: id
+    name: name
+    team: team
+  values: {}
+younium_accounts:
+  file: younium_accounts.csv
+  format:
+    delimiter: ;
+    encoding: utf-8-sig
+    date_format: '%d.%m.%Y'
+    decimal: .
+    thousands: ''''
+  columns:
+    account_number: account_number
+    name: name
+    hubspot_company_id: hubspot_company_id
+    domain: domain
+    legal_entity: legal_entity
+    currency: currency
+  values: {}
+younium_orders:
+  file: younium_orders.csv
+  format:
+    delimiter: ;
+    encoding: utf-8-sig
+    date_format: '%d.%m.%Y'
+    decimal: .
+    thousands: ''''
+  columns:
+    order_number: order_number
+    version: version
+    account_number: account_number
+    hubspot_deal_id: hubspot_deal_id
+    status: status
+    effective_start: effective_start
+    effective_end: effective_end
+    term_months: term_months
+    auto_renew: auto_renew
+    cancellation_date: cancellation_date
+    currency: currency
+  values: {}
+younium_order_charges:
+  file: younium_order_charges.csv
+  format:
+    delimiter: ;
+    encoding: utf-8-sig
+    date_format: '%d.%m.%Y'
+    decimal: .
+    thousands: ''''
+  columns:
+    charge_id: charge_id
+    order_number: order_number
+    version: version
+    sku: sku
+    product: product
+    charge_plan: charge_plan
+    charge_type: charge_type
+    quantity: quantity
+    price: price
+    billing_period: billing_period
+    mrr: mrr
+    effective_start: effective_start
+    effective_end: effective_end
+  values: {}
+younium_invoices:
+  file: younium_invoices.csv
+  format:
+    delimiter: ;
+    encoding: utf-8-sig
+    date_format: '%d.%m.%Y'
+    decimal: .
+    thousands: ''''
+  columns:
+    invoice_number: invoice_number
+    account_number: account_number
+    order_number: order_number
+    status: status
+    is_credit: is_credit
+    amount: amount
+    currency: currency
+    service_period_start: service_period_start
+    service_period_end: service_period_end
+    posted_date: posted_date
+  values: {}
+younium_bookings:
+  file: younium_bookings.csv
+  format:
+    delimiter: ;
+    encoding: utf-8-sig
+    date_format: '%d.%m.%Y'
+    decimal: .
+    thousands: ''''
+  columns:
+    booking_id: booking_id
+    order_number: order_number
+    version: version
+    event: event
+    classification: classification
+    cmrr_change: cmrr_change
+    currency: currency
+    booking_date: booking_date
+  values: {}
+ref_fx_rates:
+  file: ref_fx_rates.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    date: date
+    currency: currency
+    rate_to_chf: rate_to_chf
+  values: {}
+ref_product_catalog:
+  file: ref_product_catalog.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    sku: sku
+    product: product
+    charge_plan: charge_plan
+    charge_type: charge_type
+    list_price: list_price
+    currency: currency
+  values: {}

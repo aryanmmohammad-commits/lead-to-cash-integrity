@@ -1,0 +1,262 @@
+hubspot_companies:
+  file: hubspot_companies.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    company_id: Record ID
+    name: Company name
+    domain: Company domain name
+    country: Country/Region
+    city: City
+    owner_id: HubSpot owner
+    territory: Territory
+    tier: Tier
+    younium_account_number: Younium Account Number
+    created_at: Create date
+  values: {}
+hubspot_contacts:
+  file: hubspot_contacts.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    contact_id: Record ID
+    email: Email
+    company_id: Primary Associated Company ID
+    lifecycle_stage: Lifecycle Stage
+    lead_status: Lead Status
+    original_source: Original Traffic Source
+    owner_id: HubSpot owner
+    created_at: Create date
+  values:
+    lifecycle_stage:
+      Subscriber: subscriber
+      Lead: lead
+      Marketing Qualified Lead: marketingqualifiedlead
+      Sales Qualified Lead: salesqualifiedlead
+      Opportunity: opportunity
+      Customer: customer
+      Evangelist: evangelist
+      Other: other
+    lead_status:
+      New: NEW
+      Open: OPEN
+      In Progress: IN_PROGRESS
+      Open Deal: OPEN_DEAL
+      Unqualified: UNQUALIFIED
+      Attempted to Contact: ATTEMPTED_TO_CONTACT
+      Connected: CONNECTED
+      Bad Timing: BAD_TIMING
+    original_source:
+      Organic Search: ORGANIC_SEARCH
+      Paid Search: PAID_SEARCH
+      Email Marketing: EMAIL_MARKETING
+      Social Media: SOCIAL_MEDIA
+      Referrals: REFERRALS
+      Other Campaigns: OTHER_CAMPAIGNS
+      Direct Traffic: DIRECT_TRAFFIC
+      Offline: OFFLINE
+      Paid Social: PAID_SOCIAL
+hubspot_deals:
+  file: hubspot_deals.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    deal_id: Record ID
+    deal_name: Deal Name
+    company_ids: Associated company IDs
+    deal_type: Deal Type
+    motion: Deal Motion
+    stage: Deal Stage
+    amount: Amount
+    currency: Currency
+    close_date: Close Date
+    contract_start: Contract Start Date
+    contract_end: Contract End Date
+    term_months: Term (months)
+    billing_frequency: Billing Frequency
+    owner_id: HubSpot owner
+    created_at: Create date
+  values:
+    stage:
+      Appointment Scheduled: appointmentscheduled
+      Qualified to Buy: qualifiedtobuy
+      Presentation Scheduled: presentationscheduled
+      Decision Maker Bought-In: decisionmakerboughtin
+      Contract Sent: contractsent
+      Closed Won: closedwon
+      Closed Lost: closedlost
+    motion:
+      New Business: new
+      Upsell: upsell
+      Renewal: renewal
+    deal_type:
+      New Business: newbusiness
+      Existing Business: existingbusiness
+hubspot_line_items:
+  file: hubspot_line_items.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    line_item_id: Record ID
+    deal_id: Associated Deal ID
+    sku: SKU
+    quantity: Quantity
+    unit_price: Unit Price
+    amount: Amount
+  values: {}
+hubspot_owners:
+  file: hubspot_owners.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    owner_id: Owner ID
+    name: Owner Name
+    team: Team
+  values: {}
+younium_accounts:
+  file: younium_accounts.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    account_number: account_number
+    name: name
+    hubspot_company_id: hubspot_company_id
+    domain: domain
+    legal_entity: legal_entity
+    currency: currency
+  values: {}
+younium_orders:
+  file: younium_orders.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    order_number: order_number
+    version: version
+    account_number: account_number
+    hubspot_deal_id: hubspot_deal_id
+    status: status
+    effective_start: effective_start
+    effective_end: effective_end
+    term_months: term_months
+    auto_renew: auto_renew
+    cancellation_date: cancellation_date
+    currency: currency
+  values: {}
+younium_order_charges:
+  file: younium_order_charges.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    charge_id: charge_id
+    order_number: order_number
+    version: version
+    sku: sku
+    product: product
+    charge_plan: charge_plan
+    charge_type: charge_type
+    quantity: quantity
+    price: price
+    billing_period: billing_period
+    mrr: mrr
+    effective_start: effective_start
+    effective_end: effective_end
+  values: {}
+younium_invoices:
+  file: younium_invoices.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    invoice_number: invoice_number
+    account_number: account_number
+    order_number: order_number
+    status: status
+    is_credit: is_credit
+    amount: amount
+    currency: currency
+    service_period_start: service_period_start
+    service_period_end: service_period_end
+    posted_date: posted_date
+  values: {}
+younium_bookings:
+  file: younium_bookings.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    booking_id: booking_id
+    order_number: order_number
+    version: version
+    event: event
+    classification: classification
+    cmrr_change: cmrr_change
+    currency: currency
+    booking_date: booking_date
+  values: {}
+ref_fx_rates:
+  file: ref_fx_rates.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    date: date
+    currency: currency
+    rate_to_chf: rate_to_chf
+  values: {}
+ref_product_catalog:
+  file: ref_product_catalog.csv
+  format:
+    delimiter: ','
+    encoding: utf-8-sig
+    date_format: '%Y-%m-%d'
+    decimal: .
+    thousands: ''
+  columns:
+    sku: sku
+    product: product
+    charge_plan: charge_plan
+    charge_type: charge_type
+    list_price: list_price
+    currency: currency
+  values: {}

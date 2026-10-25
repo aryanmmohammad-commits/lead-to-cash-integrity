@@ -1,0 +1,1966 @@
+# Synthetic fixture contract for Task 2; no real company data.
+# All supporting records are listed by canonical key.
+# expected_checks includes failed push checks; READY is never an exception.
+# A null bridge_category imposes no additional bridge requirement in this task.
+# R07 uses matching reason ambiguous; quarantine materializes ambiguous_domain.
+# Merge findings identify the newer duplicate; the older record is primary.
+schema_version: 1
+as_of_date: '2026-10-31'
+primary_keys:
+  hubspot_companies:
+  - company_id
+  hubspot_contacts:
+  - contact_id
+  hubspot_deals:
+  - deal_id
+  hubspot_line_items:
+  - line_item_id
+  hubspot_owners:
+  - owner_id
+  younium_accounts:
+  - account_number
+  younium_orders:
+  - order_number
+  - version
+  younium_order_charges:
+  - charge_id
+  younium_invoices:
+  - invoice_number
+  younium_bookings:
+  - booking_id
+  ref_fx_rates:
+  - currency
+  - date
+  ref_product_catalog:
+  - sku
+cases:
+  PLANT-A01:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A01
+      hubspot_contacts:
+      - contact_id: PLANT-A01
+      younium_accounts:
+      - account_number: PLANT-Y-A01
+      hubspot_deals:
+      - deal_id: PLANT-D-A01
+      hubspot_line_items:
+      - line_item_id: PLANT-D-A01-LI
+    expected_checks:
+    - A1
+    check_records:
+    - check_id: A1
+      source_table: hubspot_contacts
+      object_type: contact
+      record_id: PLANT-A01
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals:
+    - action: set_property
+      source_table: hubspot_contacts
+      record_id: PLANT-A01
+      property: lifecyclestage
+      current_value: null
+      proposed_value: opportunity
+      requires_clear_first: false
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A1: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A02:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A02
+      hubspot_contacts:
+      - contact_id: PLANT-A02
+      younium_accounts:
+      - account_number: PLANT-Y-A02
+      hubspot_deals:
+      - deal_id: PLANT-D-A02
+      hubspot_line_items:
+      - line_item_id: PLANT-D-A02-LI
+      younium_orders:
+      - order_number: PLANT-O-A02
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-A02-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-A02-V1-BOOK
+    expected_checks:
+    - A1
+    check_records:
+    - check_id: A1
+      source_table: hubspot_contacts
+      object_type: contact
+      record_id: PLANT-A02
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals:
+    - action: set_property
+      source_table: hubspot_contacts
+      record_id: PLANT-A02
+      property: lifecyclestage
+      current_value: lead_old
+      proposed_value: customer
+      requires_clear_first: false
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A1: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A03:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A03
+      hubspot_contacts:
+      - contact_id: PLANT-A03
+      younium_accounts:
+      - account_number: PLANT-Y-A03
+      hubspot_deals:
+      - deal_id: PLANT-D-A03
+      hubspot_line_items:
+      - line_item_id: PLANT-D-A03-LI
+    expected_checks:
+    - A2
+    check_records:
+    - check_id: A2
+      source_table: hubspot_contacts
+      object_type: contact
+      record_id: PLANT-A03
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals:
+    - action: set_property
+      source_table: hubspot_contacts
+      record_id: PLANT-A03
+      property: lifecyclestage
+      current_value: customer
+      proposed_value: lead
+      requires_clear_first: true
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A2: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A04:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A04
+      hubspot_contacts:
+      - contact_id: PLANT-A04
+      younium_accounts:
+      - account_number: PLANT-Y-A04
+      hubspot_deals:
+      - deal_id: PLANT-D-A04
+      hubspot_line_items:
+      - line_item_id: PLANT-D-A04-LI
+      younium_orders:
+      - order_number: PLANT-O-A04
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-A04-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-A04-V1-BOOK
+    expected_checks:
+    - A2
+    check_records:
+    - check_id: A2
+      source_table: hubspot_contacts
+      object_type: contact
+      record_id: PLANT-A04
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals:
+    - action: set_property
+      source_table: hubspot_contacts
+      record_id: PLANT-A04
+      property: lifecyclestage
+      current_value: salesqualifiedlead
+      proposed_value: customer
+      requires_clear_first: false
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A2: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A05:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A05
+      hubspot_contacts:
+      - contact_id: PLANT-A05
+      younium_accounts:
+      - account_number: PLANT-Y-A05
+      hubspot_deals:
+      - deal_id: PLANT-D-A05
+      hubspot_line_items:
+      - line_item_id: PLANT-D-A05-LI
+      younium_orders:
+      - order_number: PLANT-O-A05
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-A05-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-A05-V1-BOOK
+    expected_checks:
+    - A3
+    check_records:
+    - check_id: A3
+      source_table: hubspot_contacts
+      object_type: contact
+      record_id: PLANT-A05
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals:
+    - action: set_property
+      source_table: hubspot_contacts
+      record_id: PLANT-A05
+      property: hs_lead_status
+      current_value: NEW
+      proposed_value: null
+      requires_clear_first: false
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A3: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A06:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A06
+      hubspot_contacts:
+      - contact_id: PLANT-A06
+      younium_accounts:
+      - account_number: PLANT-Y-A06
+      hubspot_deals:
+      - deal_id: PLANT-D-A06
+      hubspot_line_items:
+      - line_item_id: PLANT-D-A06-LI
+      younium_orders:
+      - order_number: PLANT-O-A06
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-A06-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-A06-V1-BOOK
+    expected_checks:
+    - A4
+    check_records:
+    - check_id: A4
+      source_table: hubspot_contacts
+      object_type: contact
+      record_id: PLANT-A06
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A4: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A07:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A07
+      hubspot_contacts:
+      - contact_id: PLANT-T-A07
+      younium_accounts:
+      - account_number: PLANT-Y-A07
+      hubspot_deals:
+      - deal_id: PLANT-A07
+      hubspot_line_items:
+      - line_item_id: PLANT-A07-LI
+    expected_checks:
+    - A5
+    - P5
+    check_records:
+    - check_id: A5
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-A07
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    - check_id: P5
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-A07
+      severity: risk
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: BLOCKED
+    expected_push_reasons:
+    - P5
+    money_at_risk_chf:
+      A5: null
+      P5: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A08:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A08
+      hubspot_contacts:
+      - contact_id: PLANT-T-A08
+      younium_accounts:
+      - account_number: PLANT-Y-A08
+      hubspot_deals:
+      - deal_id: PLANT-A08
+      hubspot_line_items:
+      - line_item_id: PLANT-A08-LI
+      younium_orders:
+      - order_number: PLANT-O-A08
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-A08-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-A08-V1-BOOK
+    expected_checks:
+    - A6
+    check_records:
+    - check_id: A6
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-A08
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A6: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A09:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-A09
+      - company_id: PLANT-A09b
+      younium_accounts:
+      - account_number: PLANT-Y-A09
+      - account_number: PLANT-Y-A09b
+    expected_checks:
+    - A7
+    check_records:
+    - check_id: A7
+      source_table: hubspot_companies
+      object_type: company
+      record_id: PLANT-A09b
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals:
+    - action: merge
+      object_type: company
+      primary_id: PLANT-A09
+      secondary_id: PLANT-A09b
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A7: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A10:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A10
+      hubspot_contacts:
+      - contact_id: PLANT-T-A10
+      younium_accounts:
+      - account_number: PLANT-Y-A10
+      hubspot_deals:
+      - deal_id: PLANT-A10
+      hubspot_line_items:
+      - line_item_id: PLANT-A10-LI
+    expected_checks:
+    - A8
+    check_records:
+    - check_id: A8
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-A10
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A8: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A11:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A11
+      hubspot_contacts:
+      - contact_id: PLANT-T-A11
+      younium_accounts:
+      - account_number: PLANT-Y-A11
+      hubspot_deals:
+      - deal_id: PLANT-A11
+      hubspot_line_items:
+      - line_item_id: PLANT-A11-LI
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A12:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-A12
+      hubspot_contacts:
+      - contact_id: PLANT-T-A12
+      younium_accounts:
+      - account_number: PLANT-Y-A12
+      hubspot_deals:
+      - deal_id: PLANT-D-A12
+      hubspot_line_items:
+      - line_item_id: PLANT-D-A12-LI
+      younium_orders:
+      - order_number: PLANT-O-A12
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-A12-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-A12-V1-BOOK
+    expected_checks:
+    - A9
+    check_records:
+    - check_id: A9
+      source_table: hubspot_companies
+      object_type: company
+      record_id: PLANT-A12
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals:
+    - action: set_property
+      source_table: hubspot_companies
+      record_id: PLANT-A12
+      property: territory
+      current_value: null
+      proposed_value: DACH
+      requires_clear_first: false
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A9: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A13:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-A13
+      hubspot_contacts:
+      - contact_id: PLANT-T-A13
+      younium_accounts:
+      - account_number: PLANT-Y-A13
+      hubspot_deals:
+      - deal_id: PLANT-D-A13
+      hubspot_line_items:
+      - line_item_id: PLANT-D-A13-LI
+      younium_orders:
+      - order_number: PLANT-O-A13
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-A13-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-A13-V1-BOOK
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A14:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A14
+      hubspot_contacts:
+      - contact_id: PLANT-A14
+      - contact_id: PLANT-A14b
+      younium_accounts:
+      - account_number: PLANT-Y-A14
+      hubspot_deals:
+      - deal_id: PLANT-D-A14
+      hubspot_line_items:
+      - line_item_id: PLANT-D-A14-LI
+      younium_orders:
+      - order_number: PLANT-O-A14
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-A14-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-A14-V1-BOOK
+    expected_checks:
+    - A10
+    check_records:
+    - check_id: A10
+      source_table: hubspot_contacts
+      object_type: contact
+      record_id: PLANT-A14b
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals:
+    - action: merge
+      object_type: contact
+      primary_id: PLANT-A14
+      secondary_id: PLANT-A14b
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A10: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A15:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A15
+      hubspot_contacts:
+      - contact_id: PLANT-A15
+      younium_accounts:
+      - account_number: PLANT-Y-A15
+      hubspot_deals:
+      - deal_id: PLANT-D-A15
+      hubspot_line_items:
+      - line_item_id: PLANT-D-A15-LI
+    expected_checks:
+    - A11
+    check_records:
+    - check_id: A11
+      source_table: hubspot_contacts
+      object_type: contact
+      record_id: PLANT-A15
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A11: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A16:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A16
+      hubspot_contacts:
+      - contact_id: PLANT-T-A16
+      younium_accounts:
+      - account_number: PLANT-Y-A16
+      hubspot_deals:
+      - deal_id: PLANT-A16
+      hubspot_line_items:
+      - line_item_id: PLANT-A16-LI
+      younium_orders:
+      - order_number: PLANT-O-A16
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-A16-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-A16-V1-BOOK
+    expected_checks:
+    - A12
+    check_records:
+    - check_id: A12
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-A16
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+      reason: future close date
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A12: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A17:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A17
+      hubspot_contacts:
+      - contact_id: PLANT-T-A17
+      younium_accounts:
+      - account_number: PLANT-Y-A17
+      hubspot_deals:
+      - deal_id: PLANT-A17
+      hubspot_line_items:
+      - line_item_id: PLANT-A17-LI
+      younium_orders:
+      - order_number: PLANT-O-A17
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-A17-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-A17-V1-BOOK
+    expected_checks:
+    - A12
+    check_records:
+    - check_id: A12
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-A17
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+      reason: end before start
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A12: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A18:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A18
+      hubspot_contacts:
+      - contact_id: PLANT-T-A18
+      younium_accounts:
+      - account_number: PLANT-Y-A18
+      hubspot_deals:
+      - deal_id: PLANT-A18
+      hubspot_line_items:
+      - line_item_id: PLANT-A18-LI
+      younium_orders:
+      - order_number: PLANT-O-A18
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-A18-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-A18-V1-BOOK
+    expected_checks:
+    - A12
+    check_records:
+    - check_id: A12
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-A18
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+      reason: term mismatch
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A12: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A19:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-A19
+      hubspot_contacts:
+      - contact_id: PLANT-T-A19
+      younium_accounts:
+      - account_number: PLANT-Y-A19
+      hubspot_deals:
+      - deal_id: PLANT-A19
+      hubspot_line_items:
+      - line_item_id: PLANT-A19-LI
+      younium_orders:
+      - order_number: PLANT-O-A19
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-A19-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-A19-V1-BOOK
+    expected_checks:
+    - A13
+    check_records:
+    - check_id: A13
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-A19
+      severity: hygiene
+      owner_id: unassigned
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A13: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-A20:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-A20
+      hubspot_contacts:
+      - contact_id: PLANT-T-A20
+      younium_accounts:
+      - account_number: PLANT-Y-A20
+      hubspot_deals:
+      - deal_id: PLANT-D-A20
+      hubspot_line_items:
+      - line_item_id: PLANT-D-A20-LI
+      younium_orders:
+      - order_number: PLANT-O-A20
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-A20-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-A20-V1-BOOK
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_name: Müller & Söhne Rechtsanwälte AG
+    expected_city: Zürich
+    expected_quarantine: []
+  PLANT-P01:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-P01a
+      - company_id: PLANT-C-P01b
+      hubspot_contacts:
+      - contact_id: PLANT-T-P01
+      younium_accounts:
+      - account_number: PLANT-Y-P01
+      - account_number: PLANT-Y-P01b
+      hubspot_deals:
+      - deal_id: PLANT-P01
+      hubspot_line_items:
+      - line_item_id: PLANT-P01-LI
+    expected_checks:
+    - P1
+    check_records:
+    - check_id: P1
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-P01
+      severity: risk
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: BLOCKED
+    expected_push_reasons:
+    - P1
+    money_at_risk_chf:
+      P1: null
+    bridge_category: not_yet_billed
+    bridge_amount_chf: -12000
+    expected_quarantine: []
+  PLANT-P02:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-P02
+      hubspot_contacts:
+      - contact_id: PLANT-T-P02
+      hubspot_deals:
+      - deal_id: PLANT-P02
+      hubspot_line_items:
+      - line_item_id: PLANT-P02-LI
+    expected_checks:
+    - P2
+    check_records:
+    - check_id: P2
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-P02
+      severity: risk
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: BLOCKED
+    expected_push_reasons:
+    - P2
+    money_at_risk_chf:
+      P2: null
+    bridge_category: not_yet_billed
+    bridge_amount_chf: -12000
+    expected_quarantine: []
+  PLANT-P03:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-P03
+      hubspot_contacts:
+      - contact_id: PLANT-T-P03
+      younium_accounts:
+      - account_number: PLANT-Y-P03
+      hubspot_deals:
+      - deal_id: PLANT-P03
+    expected_checks:
+    - P3
+    - P5
+    check_records:
+    - check_id: P3
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-P03
+      severity: risk
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    - check_id: P5
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-P03
+      severity: risk
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: BLOCKED
+    expected_push_reasons:
+    - P3
+    - P5
+    money_at_risk_chf:
+      P3: null
+      P5: null
+    bridge_category: not_yet_billed
+    bridge_amount_chf: -12000
+    expected_quarantine: []
+  PLANT-P04:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-P04
+      hubspot_contacts:
+      - contact_id: PLANT-T-P04
+      younium_accounts:
+      - account_number: PLANT-Y-P04
+      hubspot_deals:
+      - deal_id: PLANT-P04
+      hubspot_line_items:
+      - line_item_id: PLANT-P04-LI
+    expected_checks:
+    - P4
+    check_records:
+    - check_id: P4
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-P04
+      severity: risk
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: BLOCKED
+    expected_push_reasons:
+    - P4
+    money_at_risk_chf:
+      P4: null
+    bridge_category: not_yet_billed
+    bridge_amount_chf: -12000
+    expected_quarantine: []
+  PLANT-P05:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-P05
+      hubspot_contacts:
+      - contact_id: PLANT-T-P05
+      younium_accounts:
+      - account_number: PLANT-Y-P05
+      hubspot_deals:
+      - deal_id: PLANT-P05
+      hubspot_line_items:
+      - line_item_id: PLANT-P05-LI
+    expected_checks:
+    - P5
+    check_records:
+    - check_id: P5
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-P05
+      severity: risk
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: BLOCKED
+    expected_push_reasons:
+    - P5
+    money_at_risk_chf:
+      P5: null
+    bridge_category: not_yet_billed
+    bridge_amount_chf: -12000
+    expected_quarantine: []
+  PLANT-P06:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-P06
+      hubspot_contacts:
+      - contact_id: PLANT-T-P06
+      younium_accounts:
+      - account_number: PLANT-Y-P06
+      hubspot_deals:
+      - deal_id: PLANT-P06
+      hubspot_line_items:
+      - line_item_id: PLANT-P06-LI
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: READY
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: not_yet_billed
+    bridge_amount_chf: -12000
+    expected_quarantine: []
+  PLANT-Q01:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-Q01
+      younium_accounts:
+      - account_number: PLANT-Q01
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_quarantine:
+    - source_table: younium_accounts
+      record_id: PLANT-Q01
+      column: domain
+      reason: generic_email_domain
+  PLANT-Q02:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-Q02
+      hubspot_contacts:
+      - contact_id: PLANT-T-Q02
+      younium_accounts:
+      - account_number: PLANT-Y-Q02
+      hubspot_deals:
+      - deal_id: PLANT-Q02
+      hubspot_line_items:
+      - line_item_id: PLANT-Q02-LI
+      younium_orders:
+      - order_number: PLANT-O-Q02
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-Q02-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-Q02-V1-BOOK
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: quarantined
+    expected_quarantine:
+    - source_table: hubspot_deals
+      record_id: PLANT-Q02
+      column: currency
+      reason: no_fx_rate
+  PLANT-Q03:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-Q03
+      younium_accounts:
+      - account_number: PLANT-Q03
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_quarantine:
+    - source_table: younium_accounts
+      record_id: PLANT-Q03
+      column: hubspot_company_id
+      reason: id_corrupted_by_excel
+  PLANT-Q04:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-Q04
+      hubspot_contacts:
+      - contact_id: PLANT-T-Q04
+      younium_accounts:
+      - account_number: PLANT-Y-Q04
+      hubspot_deals:
+      - deal_id: PLANT-D-Q04
+      hubspot_line_items:
+      - line_item_id: PLANT-D-Q04-LI
+      younium_orders:
+      - order_number: PLANT-O-Q04
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-Q04-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-Q04-V1-BOOK
+      younium_invoices:
+      - invoice_number: PLANT-Q04
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_quarantine:
+    - source_table: younium_invoices
+      record_id: PLANT-Q04
+      column: amount
+      reason: unparseable_amount
+  PLANT-R01:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R01
+      hubspot_contacts:
+      - contact_id: PLANT-T-R01
+      younium_accounts:
+      - account_number: PLANT-Y-R01
+      hubspot_deals:
+      - deal_id: PLANT-R01
+      hubspot_line_items:
+      - line_item_id: PLANT-R01-LI
+      younium_orders:
+      - order_number: PLANT-O-R01
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R01-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R01-V1-BOOK
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-R02:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R02
+      hubspot_contacts:
+      - contact_id: PLANT-T-R02
+      younium_accounts:
+      - account_number: PLANT-Y-R02
+      hubspot_deals:
+      - deal_id: PLANT-R02
+      hubspot_line_items:
+      - line_item_id: PLANT-R02-LI
+      younium_orders:
+      - order_number: PLANT-O-R02
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R02-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R02-V1-BOOK
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: within_tolerance
+    bridge_amount_chf: 480
+    expected_quarantine: []
+  PLANT-R03:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R03
+      hubspot_contacts:
+      - contact_id: PLANT-T-R03
+      younium_accounts:
+      - account_number: PLANT-Y-R03
+      hubspot_deals:
+      - deal_id: PLANT-R03
+      hubspot_line_items:
+      - line_item_id: PLANT-R03-LI
+      younium_orders:
+      - order_number: PLANT-O-R03
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R03-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R03-V1-BOOK
+    expected_checks:
+    - R3
+    check_records:
+    - check_id: R3
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-R03
+      severity: leak
+      owner_id: OWN-000001
+      money_at_risk_chf: 504
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R3: 504
+    bridge_category: value_mismatch
+    bridge_amount_chf: 504
+    expected_quarantine: []
+  PLANT-R04:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R04
+      hubspot_contacts:
+      - contact_id: PLANT-T-R04
+      younium_accounts:
+      - account_number: PLANT-Y-R04
+      hubspot_deals:
+      - deal_id: PLANT-R04
+      hubspot_line_items:
+      - line_item_id: PLANT-R04-LI
+    expected_checks:
+    - R1
+    check_records:
+    - check_id: R1
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-R04
+      severity: leak
+      owner_id: OWN-000001
+      money_at_risk_chf: 18000
+      reason: no order
+    expected_proposals: []
+    expected_push_status: READY
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R1: 18000
+    bridge_category: won_not_billed
+    bridge_amount_chf: -18000
+    expected_quarantine: []
+  PLANT-R05:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R05
+      hubspot_contacts:
+      - contact_id: PLANT-T-R05
+      younium_accounts:
+      - account_number: PLANT-Y-R05
+      hubspot_deals:
+      - deal_id: PLANT-R05
+      hubspot_line_items:
+      - line_item_id: PLANT-R05-LI
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: READY
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: not_yet_billed
+    bridge_amount_chf: -18000
+    expected_quarantine: []
+  PLANT-R06:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R06
+      hubspot_contacts:
+      - contact_id: PLANT-T-R06
+      younium_accounts:
+      - account_number: PLANT-R06
+      hubspot_deals:
+      - deal_id: PLANT-D-R06
+      hubspot_line_items:
+      - line_item_id: PLANT-D-R06-LI
+      younium_orders:
+      - order_number: PLANT-O-R06
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R06-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R06-V1-BOOK
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_match_method: domain
+    expected_quarantine: []
+  PLANT-R07:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R07
+      younium_accounts:
+      - account_number: PLANT-R07
+      younium_orders:
+      - order_number: PLANT-O-R07
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R07-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R07-V1-BOOK
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_quarantine:
+    - source_table: younium_accounts
+      record_id: PLANT-R07
+      column: domain
+      reason: ambiguous
+      model_reason: ambiguous_domain
+    expected_match_method: ambiguous
+  PLANT-R08:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R08
+      hubspot_contacts:
+      - contact_id: PLANT-T-R08
+      younium_accounts:
+      - account_number: PLANT-Y-R08
+      hubspot_deals:
+      - deal_id: PLANT-R08
+      hubspot_line_items:
+      - line_item_id: PLANT-R08-LI
+      younium_orders:
+      - order_number: PLANT-O-R08
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R08-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R08-V1-BOOK
+    expected_checks:
+    - A5
+    check_records:
+    - check_id: A5
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-R08
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      A5: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-R09:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R09
+      hubspot_contacts:
+      - contact_id: PLANT-T-R09
+      younium_accounts:
+      - account_number: PLANT-Y-R09
+      hubspot_deals:
+      - deal_id: PLANT-R09
+      hubspot_line_items:
+      - line_item_id: PLANT-R09-LI
+      younium_orders:
+      - order_number: PLANT-O-R09
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R09-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R09-V1-BOOK
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-R11:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R11
+      hubspot_contacts:
+      - contact_id: PLANT-T-R11
+      younium_accounts:
+      - account_number: PLANT-Y-R11
+      hubspot_deals:
+      - deal_id: PLANT-R11
+      hubspot_line_items:
+      - line_item_id: PLANT-R11-LI
+      younium_orders:
+      - order_number: PLANT-O-R11
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R11-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R11-V1-BOOK
+    expected_checks:
+    - R3
+    - R5
+    check_records:
+    - check_id: R3
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-R11
+      severity: leak
+      owner_id: OWN-000001
+      money_at_risk_chf: 2400
+    - check_id: R5
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-R11
+      severity: leak
+      owner_id: OWN-000001
+      money_at_risk_chf: 2400
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R3: 2400
+      R5: 2400
+    bridge_category: value_mismatch
+    bridge_amount_chf: -2400
+    expected_quarantine: []
+  PLANT-R12:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-R12
+      hubspot_contacts:
+      - contact_id: PLANT-T-R12
+      younium_accounts:
+      - account_number: PLANT-Y-R12
+      hubspot_deals:
+      - deal_id: PLANT-D-R12
+      - deal_id: PLANT-R12
+      hubspot_line_items:
+      - line_item_id: PLANT-D-R12-LI
+      - line_item_id: PLANT-R12-LI
+      younium_orders:
+      - order_number: PLANT-O-R12
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R12-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R12-V1-BOOK
+    expected_checks:
+    - R6
+    check_records:
+    - check_id: R6
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-R12
+      severity: leak
+      owner_id: OWN-000001
+      money_at_risk_chf: 6000
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R6: 6000
+    bridge_category: value_mismatch
+    bridge_amount_chf: -6000
+    expected_quarantine: []
+  PLANT-R13:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R13
+      hubspot_contacts:
+      - contact_id: PLANT-T-R13
+      younium_accounts:
+      - account_number: PLANT-Y-R13
+      hubspot_deals:
+      - deal_id: PLANT-D-R13
+      hubspot_line_items:
+      - line_item_id: PLANT-D-R13-LI
+      younium_orders:
+      - order_number: PLANT-R13
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-R13-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-R13-V1-BOOK
+    expected_checks:
+    - R7
+    check_records:
+    - check_id: R7
+      source_table: younium_orders
+      object_type: order
+      record_id: PLANT-R13
+      severity: leak
+      owner_id: OWN-000001
+      money_at_risk_chf: 12000
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R7: 12000
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-R14:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R14
+      hubspot_contacts:
+      - contact_id: PLANT-T-R14
+      younium_accounts:
+      - account_number: PLANT-Y-R14
+      hubspot_deals:
+      - deal_id: PLANT-D-R14
+      hubspot_line_items:
+      - line_item_id: PLANT-D-R14-LI
+      younium_orders:
+      - order_number: PLANT-R14
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-R14-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-R14-V1-BOOK
+    expected_checks:
+    - R7
+    check_records:
+    - check_id: R7
+      source_table: younium_orders
+      object_type: order
+      record_id: PLANT-R14
+      severity: info
+      owner_id: OWN-000001
+      money_at_risk_chf: 0
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R7: 0
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-R15:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-R15
+      younium_accounts:
+      - account_number: PLANT-Y-R15
+      hubspot_deals:
+      - deal_id: PLANT-D-R15
+      hubspot_line_items:
+      - line_item_id: PLANT-D-R15-LI
+      younium_orders:
+      - order_number: PLANT-O-R15
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R15-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R15-V1-BOOK
+      younium_invoices:
+      - invoice_number: PLANT-R15
+    expected_checks:
+    - R8
+    check_records:
+    - check_id: R8
+      source_table: younium_invoices
+      object_type: invoice
+      record_id: PLANT-R15
+      severity: leak
+      owner_id: finance
+      money_at_risk_chf: 1000
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R8: 1000
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-R16:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-R16
+      younium_accounts:
+      - account_number: PLANT-Y-R16
+      hubspot_deals:
+      - deal_id: PLANT-D-R16
+      hubspot_line_items:
+      - line_item_id: PLANT-D-R16-LI
+      younium_orders:
+      - order_number: PLANT-O-R16
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R16-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R16-V1-BOOK
+      younium_invoices:
+      - invoice_number: PLANT-R16
+      - invoice_number: PLANT-R16-CREDIT
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-R17:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R17
+      hubspot_contacts:
+      - contact_id: PLANT-T-R17
+      younium_accounts:
+      - account_number: PLANT-Y-R17
+      hubspot_deals:
+      - deal_id: PLANT-R17
+      hubspot_line_items:
+      - line_item_id: PLANT-R17-LI
+      younium_orders:
+      - order_number: PLANT-O-R17
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R17-V1-SEAT
+      - charge_id: PLANT-CH-R17-ONBOARDING
+      younium_bookings:
+      - booking_id: PLANT-O-R17-V1-BOOK
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_billing_arr_chf:
+      '2026-10-31': 12000
+    expected_quarantine: []
+  PLANT-R18:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R18
+      hubspot_contacts:
+      - contact_id: PLANT-T-R18
+      younium_accounts:
+      - account_number: PLANT-Y-R18
+      hubspot_deals:
+      - deal_id: PLANT-D-R18
+      hubspot_line_items:
+      - line_item_id: PLANT-D-R18-LI
+      younium_orders:
+      - order_number: PLANT-R18
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-R18-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-R18-V1-BOOK
+    expected_checks:
+    - R2
+    check_records:
+    - check_id: R2
+      source_table: younium_orders
+      object_type: order
+      record_id: PLANT-R18
+      severity: leak
+      owner_id: finance
+      money_at_risk_chf: 12000
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R2: 12000
+    bridge_category: billed_not_in_crm
+    bridge_amount_chf: 12000
+    expected_quarantine: []
+  PLANT-R19:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R19
+      hubspot_contacts:
+      - contact_id: PLANT-T-R19
+      younium_accounts:
+      - account_number: PLANT-Y-R19
+      hubspot_deals:
+      - deal_id: PLANT-R19
+      hubspot_line_items:
+      - line_item_id: PLANT-R19-LI
+      younium_orders:
+      - order_number: PLANT-O-R19
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R19-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R19-V1-BOOK
+    expected_checks:
+    - R4
+    check_records:
+    - check_id: R4
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-R19
+      severity: risk
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R4: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-R20:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R20
+      hubspot_contacts:
+      - contact_id: PLANT-T-R20
+      younium_accounts:
+      - account_number: PLANT-Y-R20
+      hubspot_deals:
+      - deal_id: PLANT-R20
+      hubspot_line_items:
+      - line_item_id: PLANT-R20-LI
+      younium_orders:
+      - order_number: PLANT-O-R20
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R20-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R20-V1-BOOK
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-R21:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R21
+      hubspot_contacts:
+      - contact_id: PLANT-T-R21
+      younium_accounts:
+      - account_number: PLANT-Y-R21
+      hubspot_deals:
+      - deal_id: PLANT-R21
+      hubspot_line_items:
+      - line_item_id: PLANT-R21-LI
+      younium_orders:
+      - order_number: PLANT-O-R21
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R21-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R21-V1-BOOK
+    expected_checks:
+    - R1
+    check_records:
+    - check_id: R1
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-R21
+      severity: leak
+      owner_id: OWN-000001
+      money_at_risk_chf: 12000
+      reason: only a draft order
+    expected_proposals: []
+    expected_push_status: READY
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R1: 12000
+    bridge_category: won_not_billed
+    bridge_amount_chf: -12000
+    expected_quarantine: []
+  PLANT-R22:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R22
+      hubspot_contacts:
+      - contact_id: PLANT-T-R22
+      younium_accounts:
+      - account_number: PLANT-Y-R22
+      hubspot_deals:
+      - deal_id: PLANT-R22
+      hubspot_line_items:
+      - line_item_id: PLANT-R22-LI
+      younium_orders:
+      - order_number: PLANT-O-R22
+        version: 1
+      - order_number: PLANT-O-R22b
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R22-V1-SEAT
+      - charge_id: PLANT-O-R22b-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R22-V1-BOOK
+      - booking_id: PLANT-O-R22b-V1-BOOK
+    expected_checks:
+    - R9
+    check_records:
+    - check_id: R9
+      source_table: younium_orders
+      object_type: order
+      record_id: PLANT-O-R22b
+      severity: leak
+      owner_id: finance
+      money_at_risk_chf: 12000
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R9: 12000
+    bridge_category: double_billed
+    bridge_amount_chf: 12000
+    expected_quarantine: []
+  PLANT-R23:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R23
+      hubspot_contacts:
+      - contact_id: PLANT-T-R23
+      younium_accounts:
+      - account_number: PLANT-Y-R23
+      hubspot_deals:
+      - deal_id: PLANT-D-R23
+      hubspot_line_items:
+      - line_item_id: PLANT-D-R23-LI
+      younium_orders:
+      - order_number: PLANT-R23
+        version: 1
+      - order_number: PLANT-R23
+        version: 2
+      younium_order_charges:
+      - charge_id: PLANT-R23-V1-SEAT
+      - charge_id: PLANT-R23-V2-SEAT
+      younium_bookings:
+      - booking_id: PLANT-R23-V1-BOOK
+      - booking_id: PLANT-R23-V2-BOOK
+    expected_checks:
+    - R10
+    check_records:
+    - check_id: R10
+      source_table: younium_orders
+      object_type: order_version
+      record_id: PLANT-R23:2
+      severity: leak
+      owner_id: finance
+      money_at_risk_chf: 1200
+      source_key:
+        order_number: PLANT-R23
+        version: 2
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R10: 1200
+    bridge_category: billing_only_change
+    bridge_amount_chf: 1200
+    expected_quarantine: []
+  PLANT-R24:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R24
+      hubspot_contacts:
+      - contact_id: PLANT-T-R24
+      younium_accounts:
+      - account_number: PLANT-Y-R24
+      hubspot_deals:
+      - deal_id: PLANT-D-R24
+      hubspot_line_items:
+      - line_item_id: PLANT-D-R24-LI
+      younium_orders:
+      - order_number: PLANT-R24
+        version: 1
+      - order_number: PLANT-R24
+        version: 2
+      younium_order_charges:
+      - charge_id: PLANT-R24-V1-SEAT
+      - charge_id: PLANT-R24-V2-SEAT
+      younium_bookings:
+      - booking_id: PLANT-R24-V1-BOOK
+      - booking_id: PLANT-R24-V2-BOOK
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: renewed_in_billing_only
+    bridge_amount_chf: 12000
+    expected_quarantine: []
+  PLANT-R25:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R25
+      hubspot_contacts:
+      - contact_id: PLANT-T-R25
+      younium_accounts:
+      - account_number: PLANT-R25
+      hubspot_deals:
+      - deal_id: PLANT-D-R25
+      hubspot_line_items:
+      - line_item_id: PLANT-D-R25-LI
+      younium_orders:
+      - order_number: PLANT-O-R25
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R25-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R25-V1-BOOK
+    expected_checks:
+    - R11
+    check_records:
+    - check_id: R11
+      source_table: younium_accounts
+      object_type: account
+      record_id: PLANT-R25
+      severity: hygiene
+      owner_id: OWN-000001
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R11: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-R26:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R26
+      hubspot_contacts:
+      - contact_id: PLANT-T-R26
+      younium_accounts:
+      - account_number: PLANT-R26
+      - account_number: PLANT-R26b
+      hubspot_deals:
+      - deal_id: PLANT-D-R26
+      hubspot_line_items:
+      - line_item_id: PLANT-D-R26-LI
+      younium_orders:
+      - order_number: PLANT-O-R26
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R26-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R26-V1-BOOK
+    expected_checks:
+    - R12
+    check_records:
+    - check_id: R12
+      source_table: younium_accounts
+      object_type: account
+      record_id: PLANT-R26b
+      severity: hygiene
+      owner_id: finance
+      money_at_risk_chf: null
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R12: null
+    bridge_category: null
+    expected_quarantine: []
+  PLANT-R27:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R27
+      hubspot_contacts:
+      - contact_id: PLANT-T-R27
+      younium_accounts:
+      - account_number: PLANT-Y-R27
+      hubspot_deals:
+      - deal_id: PLANT-R27
+      hubspot_line_items:
+      - line_item_id: PLANT-R27-LI
+      younium_orders:
+      - order_number: PLANT-O-R27
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R27-V1-SEAT
+      - charge_id: PLANT-CH-R27-USAGE
+      younium_bookings:
+      - booking_id: PLANT-O-R27-V1-BOOK
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_billing_arr_chf:
+      '2026-10-31': 18000
+    expected_quarantine: []
+  PLANT-R28:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-C-R28
+      hubspot_contacts:
+      - contact_id: PLANT-T-R28
+      younium_accounts:
+      - account_number: PLANT-Y-R28
+      hubspot_deals:
+      - deal_id: PLANT-R28
+      hubspot_line_items:
+      - line_item_id: PLANT-R28-LI
+      younium_orders:
+      - order_number: PLANT-O-R28
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R28-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R28-V1-BOOK
+    expected_checks: []
+    check_records: []
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf: {}
+    bridge_category: null
+    expected_billing_arr_chf:
+      '2026-09-30': 12000
+      '2026-10-31': 0
+    expected_quarantine: []
+  PLANT-R29:
+    records:
+      hubspot_companies:
+      - company_id: PLANT-R29
+      hubspot_contacts:
+      - contact_id: PLANT-T-R29
+      younium_accounts:
+      - account_number: PLANT-Y-R29
+      hubspot_deals:
+      - deal_id: PLANT-D-R29
+      - deal_id: PLANT-R29
+      hubspot_line_items:
+      - line_item_id: PLANT-D-R29-LI
+      - line_item_id: PLANT-R29-LI
+      younium_orders:
+      - order_number: PLANT-O-R29
+        version: 1
+      younium_order_charges:
+      - charge_id: PLANT-O-R29-V1-SEAT
+      younium_bookings:
+      - booking_id: PLANT-O-R29-V1-BOOK
+    expected_checks:
+    - R6
+    check_records:
+    - check_id: R6
+      source_table: hubspot_deals
+      object_type: deal
+      record_id: PLANT-R29
+      severity: leak
+      owner_id: OWN-000001
+      money_at_risk_chf: 12000
+    expected_proposals: []
+    expected_push_status: null
+    expected_push_reasons: []
+    money_at_risk_chf:
+      R6: 12000
+    bridge_category: value_mismatch
+    bridge_amount_chf: -12000
+    expected_quarantine: []
