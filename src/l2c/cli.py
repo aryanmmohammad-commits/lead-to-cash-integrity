@@ -7,6 +7,7 @@ import typer
 
 from l2c.config import ConfigError
 from l2c.generate import ExportFormat, Profile, generate_files
+from l2c.load import load_files
 from l2c.logging_setup import setup_logging
 from l2c.paths import RAW_DIR
 
@@ -68,9 +69,27 @@ def generate(
 
 
 @app.command(name="load")
-def load_sources(mapping: MappingOption = DEFAULT_MAPPING) -> None:
+def load_sources(
+    mapping: MappingOption = DEFAULT_MAPPING,
+    force: Annotated[
+        bool, typer.Option(help="Override row-count drops with a logged warning.")
+    ] = False,
+) -> None:
     """Load source files into the raw schema."""
-    _not_built()
+    logger = setup_logging()
+    try:
+        result = load_files(mapping_path=mapping, raw_dir=RAW_DIR, force=force)
+    except (ConfigError, ValueError, OSError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    finally:
+        for handler in logger.handlers[:]:
+            logger.removeHandler(handler)
+            handler.close()
+    typer.echo(
+        f"Loaded {len(result.row_counts)} tables ({sum(result.row_counts.values())} rows); "
+        f"run {result.run_id}"
+    )
 
 
 @app.command()

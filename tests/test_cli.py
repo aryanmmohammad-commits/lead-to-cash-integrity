@@ -42,7 +42,9 @@ def test_root_help_lists_all_commands() -> None:
         assert command in result.output
 
 
-@pytest.mark.parametrize("command", [command for command in COMMANDS if command != ["generate"]])
+@pytest.mark.parametrize(
+    "command", [command for command in COMMANDS if command not in (["generate"], ["load"])]
+)
 def test_each_command_is_a_failing_stub(command: list[str]) -> None:
     result = runner.invoke(cli.app, command)
     assert result.exit_code == 1
@@ -53,7 +55,7 @@ def test_each_command_is_a_failing_stub(command: list[str]) -> None:
 def test_source_commands_accept_mapping(command: list[str]) -> None:
     result = runner.invoke(cli.app, [*command, "--mapping", "custom mapping.yml"])
     assert result.exit_code == 1
-    if command == ["generate"]:
+    if command in (["generate"], ["load"]):
         assert "Cannot read configuration" in result.output
         assert "custom mapping.yml" in result.output
     else:
