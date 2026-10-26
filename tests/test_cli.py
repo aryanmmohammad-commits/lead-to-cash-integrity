@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import pytest
@@ -7,6 +8,7 @@ from typer.testing import CliRunner
 from l2c import cli
 
 runner = CliRunner()
+ANSI = re.compile(r"\x1b\[[0-9;]*m")
 COMMANDS = [
     ["generate"],
     ["load"],
@@ -74,9 +76,7 @@ def test_source_commands_accept_mapping(command: list[str]) -> None:
         assert "custom mapping.yml" in result.output
     else:
         assert result.output.strip() == "planned for v0.2 - see README roadmap"
-    assert "--mapping" in runner.invoke(cli.app, [*command, "--help"]).output
-
-
+        assert "--mapping" in ANSI.sub("", runner.invoke(cli.app, [*command, "--help"]).output)
 def test_mapping_option_precedence(monkeypatch: pytest.MonkeyPatch) -> None:
     command = get_command(cli.app).commands["load"]
 
