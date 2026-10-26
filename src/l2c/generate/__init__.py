@@ -2,7 +2,7 @@
 
 import os
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from time import perf_counter
 from uuid import uuid4
@@ -16,14 +16,14 @@ from l2c.logging_setup import log_step
 from l2c.paths import CONFIG_DIR, DEFAULT_MAPPING_PATH, RAW_DIR
 
 
-class ExportFormat(str, Enum):
+class ExportFormat(StrEnum):
     DEFAULT = "default"
     CH = "ch"
     DE = "de"
     HUBSPOT_UI = "hubspot_ui"
 
 
-class Profile(str, Enum):
+class Profile(StrEnum):
     SMALL = "small"
     LARGE = "large"
 

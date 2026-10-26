@@ -19,8 +19,8 @@ dependencies = [
     "jinja2",
     "requests",
     "tenacity",
-    "pytest",
-    "ruff",
+    "pytest==8.4.2",
+    "ruff==0.17.2",
 ]
 
 [project.scripts]
