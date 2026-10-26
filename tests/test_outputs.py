@@ -46,6 +46,11 @@ def test_report_and_csv_contracts_for_every_export_format(
     assert re.search(r'data-record-id="PLANT-R04".*?CHF 18,000\.00', text, re.DOTALL)
     assert "CHF 826,224.00" in text and "CHF 736,008.00" in text and "CHF -90,216.00" in text
     assert "Synthetic data. Independent demo." in text
+    assert (
+        "A positive bar means billing ARR is higher than CRM ARR for that cause; "
+        "a negative bar means it is lower."
+    ) in text
+    assert "CRM data gaps (blank amount or dates)" in text
     assert "not valued" in text and "no_fx_rate" in text
     assert "change line" not in text and "score history" not in text
     parser = ReportParser(text)
@@ -112,6 +117,9 @@ def test_report_and_csv_contracts_for_every_export_format(
         assert isinstance(workbook["Scorecard"]["E2"].value, float)
         assert workbook["Scorecard"]["E2"].number_format == "0.00%"
         assert sum(row[2].value for row in list(workbook["ARR bridge"])[1:]) == -90216
+        assert "CRM data gaps (blank amount or dates)" in {
+            row[1].value for row in list(workbook["ARR bridge"])[1:]
+        }
     finally:
         workbook.close()
 
@@ -223,7 +231,7 @@ def test_gap_waterfall_filters_zero_categories_sorts_absolute_values_and_chains_
         assert bar["after"] == cumulative
     assert cumulative == end["after"] == data.gap
     assert all(bar["label"] != "Unexplained" for bar in bars)
-    assert "CRM ARR not valued" in {bar["label"] for bar in bars}
+    assert "CRM data gaps (blank amount or dates)" in {bar["label"] for bar in bars}
     assert all(bar["color"] == "#168064" for bar in bars if bar["amount"] > 0)
     assert all(bar["color"] == "#bc4b2a" for bar in bars if bar["amount"] < 0)
 

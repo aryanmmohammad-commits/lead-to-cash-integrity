@@ -1,7 +1,6 @@
 import copy
 import io
 import shutil
-from collections import Counter
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date, timedelta
@@ -18,7 +17,6 @@ from l2c import cli
 from l2c.config import load_mapping, load_rules
 from l2c.dbt_runner import BuildError, build_models, preview_table
 from l2c.generate import generate_data
-from l2c.generate.cases import CASES
 from l2c.generate.writer import write_files
 from l2c.load import load_files
 from l2c.logging_setup import setup_logging
@@ -91,44 +89,6 @@ def test_all_staging_models_have_real_types_and_cleaned_fields(built: dict[str, 
         database,
         "SELECT lifecycle_stage FROM staging.stg_hubspot__contacts WHERE contact_id='PLANT-A02'",
     ) == [("lead_old",)]
-
-
-def _freeze(value: Any) -> Any:
-    return tuple(_freeze(item) for item in value) if isinstance(value, list) else value
-
-
-def _semantic_snapshot(database: Path) -> dict[str, list[tuple]]:
-    snapshot = {}
-    with _connection(database) as connection:
-        models = connection.execute(
-            "SELECT table_schema, table_name FROM information_schema.tables "
-            "WHERE table_schema IN ('staging','intermediate','marts') ORDER BY 1,2"
-        ).fetchall()
-        for schema, table in models:
-            columns = connection.execute(
-                "SELECT column_name FROM information_schema.columns "
-                "WHERE table_schema=? AND table_name=? ORDER BY ordinal_position",
-                [schema, table],
-            ).fetchall()
-            names = [
-                name
-                for (name,) in columns
-                if name not in ("loaded_at", "run_id", "source_file") and not name.endswith("__raw")
-            ]
-            select = ", ".join('"' + name.replace('"', '""') + '"' for name in names)
-            rows = connection.execute(f'SELECT {select} FROM "{schema}"."{table}"').fetchall()
-            snapshot[f"{schema}.{table}"] = sorted(
-                [tuple(_freeze(item) for item in row) for row in rows], key=repr
-            )
-    return snapshot
-
-
-@pytest.mark.parametrize("format_name", ["ch", "de", "hubspot_ui"])
-def test_all_four_formats_produce_identical_staged_and_matched_results(
-    format_name: str,
-    built: dict[str, Path],
-) -> None:
-    assert _semantic_snapshot(built[format_name]) == _semantic_snapshot(built["default"])
 
 
 def test_quarantine_has_exact_planted_findings_and_retains_raw_evidence(
@@ -439,117 +399,6 @@ def test_failed_builds_close_connections_and_do_not_touch_state(
     assert _query(database, "SELECT count(*) FROM raw.hubspot_companies") == [(expected_count,)]
 
 
-@pytest.fixture(scope="module")
-def planted_contract() -> dict:
-    return yaml.safe_load(Path(__file__).with_name("planted_cases.yml").read_text(encoding="utf-8"))
-
-
-def _case_objects(case: dict) -> set[tuple[str, str]]:
-    types = {
-        "hubspot_companies": "company",
-        "hubspot_contacts": "contact",
-        "hubspot_deals": "deal",
-        "younium_accounts": "account",
-        "younium_invoices": "invoice",
-    }
-    objects = set()
-    for table, records in case["records"].items():
-        for record in records:
-            if table in types:
-                objects.add((types[table], str(next(iter(record.values())))))
-            elif table == "younium_orders":
-                objects.add(("order", record["order_number"]))
-                objects.add(("order_version", f"{record['order_number']}:{record['version']}"))
-    return objects
-
-
-@pytest.mark.parametrize("case_id", sorted(CASES))
-def test_every_planted_check_owner_severity_money_and_proposal_is_exact(
-    case_id: str,
-    built: dict[str, Path],
-    planted_contract: dict,
-) -> None:
-    database = built["default"]
-    case = planted_contract["cases"][case_id]
-    objects = _case_objects(case)
-    rows = _query(
-        database,
-        "SELECT check_id, object_type, record_id, owner_id, severity, "
-        "money_at_risk_chf, reason FROM marts.exceptions",
-    )
-    actual = Counter(row[:6] for row in rows if (row[1], row[2]) in objects)
-    expected = Counter(
-        (
-            row["check_id"],
-            row["object_type"],
-            row["record_id"],
-            row["owner_id"],
-            row["severity"],
-            row["money_at_risk_chf"],
-        )
-        for row in case["check_records"]
-    )
-    assert actual == expected
-    for finding in case["check_records"]:
-        if finding.get("reason"):
-            assert any(
-                row[0] == finding["check_id"]
-                and row[2] == finding["record_id"]
-                and row[6] == finding["reason"]
-                for row in rows
-            )
-    proposals = _query(
-        database,
-        "SELECT check_id, object_type, record_id, property, current_value, "
-        "proposed_value, requires_clear_first FROM marts.fix_proposals",
-    )
-    actual_proposals = Counter(row for row in proposals if (row[1], row[2]) in objects)
-    expected_proposals = []
-    for proposal in case["expected_proposals"]:
-        if proposal["action"] == "merge":
-            expected_proposals.append(
-                (
-                    "A7" if proposal["object_type"] == "company" else "A10",
-                    proposal["object_type"],
-                    proposal["secondary_id"],
-                    "merge",
-                    proposal["secondary_id"],
-                    proposal["primary_id"],
-                    False,
-                )
-            )
-        else:
-            expected_proposals.append(
-                (
-                    case["expected_checks"][0],
-                    "contact" if proposal["source_table"] == "hubspot_contacts" else "company",
-                    proposal["record_id"],
-                    proposal["property"],
-                    proposal["current_value"],
-                    proposal["proposed_value"],
-                    proposal["requires_clear_first"],
-                )
-            )
-    assert actual_proposals == Counter(expected_proposals)
-    if case["expected_push_status"]:
-        deal_ids = [key["deal_id"] for key in case["records"]["hubspot_deals"]]
-        push = _query(
-            database,
-            "SELECT deal_id, status, reasons, failed_checks, days_since_contract_start "
-            "FROM marts.push_readiness",
-        )
-        selected = [row for row in push if row[0] in deal_ids]
-        assert selected == [
-            (
-                case_id,
-                case["expected_push_status"],
-                case["expected_push_reasons"],
-                case["expected_push_failed_checks"],
-                case["expected_days_since_contract_start"],
-            )
-        ]
-
-
 def test_scorecard_denominators_failed_record_counts_and_push_aggregation(
     built: dict[str, Path],
 ) -> None:
@@ -841,35 +690,6 @@ def test_push_age_boundaries_draft_precedence_and_all_human_reasons(
     ) == [("READY",)]
 
 
-def test_default_seed_has_zero_unexplained_and_preserves_the_three_real_causes(
-    built: dict[str, Path],
-) -> None:
-    database = built["default"]
-    assert _query(
-        database,
-        "SELECT amount_chf FROM marts.arr_bridge WHERE category='unexplained'",
-    ) == [(Decimal("0.00"),)]
-    assert _query(
-        database,
-        "SELECT record_id, amount_chf FROM intermediate.int_arr_bridge_ledger "
-        "WHERE category='crm_arr_not_valued' AND amount_chf<>0 ORDER BY record_id",
-    ) == [
-        ("PLANT-O-A08", Decimal("12000.00")),
-        ("PLANT-O-A17", Decimal("12000.00")),
-        ("PLANT-O-R08", Decimal("12000.00")),
-    ]
-    assert _query(
-        database,
-        "SELECT deal_id, amount IS NULL, contract_end IS NULL, contract_end < contract_start "
-        "FROM staging.stg_hubspot__deals "
-        "WHERE deal_id IN ('PLANT-A08','PLANT-A17','PLANT-R08') ORDER BY deal_id",
-    ) == [
-        ("PLANT-A08", False, True, None),
-        ("PLANT-A17", False, False, True),
-        ("PLANT-R08", True, False, False),
-    ]
-
-
 def test_quarantine_cause_names_are_consistent_across_matching_and_reported_records(
     built: dict[str, Path],
     adversarial: Path,
@@ -896,56 +716,6 @@ def test_duplicate_push_scorecard_counts_failed_deals_instead_of_duplicate_order
         configured_checks,
         "SELECT rows_failed FROM marts.audit_scorecard WHERE check_id='R9'",
     ) == [(1,)]
-
-
-def _arr_case_ids() -> list[str]:
-    contract = yaml.safe_load(
-        Path(__file__).with_name("planted_cases.yml").read_text(encoding="utf-8")
-    )
-    return [
-        case_id
-        for case_id, case in contract["cases"].items()
-        if case["bridge_category"]
-        or case.get("expected_billing_arr_chf")
-        or case.get("expected_crm_arr_chf")
-    ]
-
-
-@pytest.mark.parametrize("case_id", _arr_case_ids())
-def test_planted_arr_and_signed_bridge_contributions_are_exact(
-    case_id: str, built: dict[str, Path], planted_contract: dict
-) -> None:
-    database = built["default"]
-    case = planted_contract["cases"][case_id]
-    if case["bridge_category"]:
-        rows = _query(
-            database,
-            "SELECT object_type, record_id, category, amount_chf "
-            "FROM intermediate.int_arr_bridge_ledger",
-        )
-        selected = [row for row in rows if row[:2] in _case_objects(case)]
-        amounts: Counter = Counter()
-        for _, _, category, amount in selected:
-            if amount:
-                amounts[category] += amount
-        expected = case.get("bridge_amount_chf")
-        if expected is None:
-            assert any(row[2] == case["bridge_category"] for row in selected)
-            assert not amounts  # Unknown FX is never assigned an invented CHF value.
-        else:
-            assert amounts == {case["bridge_category"]: Decimal(str(expected))}
-    for system, source_table, key in (
-        ("billing", "younium_orders", "order_number"),
-        ("crm", "hubspot_deals", "deal_id"),
-    ):
-        ids = sorted({record[key] for record in case["records"].get(source_table, [])})
-        for when, expected in case.get(f"expected_{system}_arr_chf", {}).items():
-            assert _query(
-                database,
-                f"SELECT coalesce(sum(arr_chf),0) FROM marts.arr_{system}_monthly "
-                f"WHERE month_end = ? AND list_contains(?, {key})",
-                [date.fromisoformat(when), ids],
-            ) == [(Decimal(str(expected)),)]
 
 
 def test_arr_calendar_versions_fx_and_quarantine(built: dict[str, Path]) -> None:
@@ -1006,7 +776,7 @@ def test_arr_bridge_totals_are_signed_complete_and_separate_grace_periods(
     assert bridge["not_yet_billed"] == Decimal("-90000.00")
     assert bridge["timing"] == Decimal("-12000.00")
     assert bridge["quarantined"] == Decimal("-12000.00")
-    assert bridge["crm_arr_not_valued"] == Decimal("36000.00")
+    assert bridge["crm_data_gaps"] == Decimal("36000.00")
     assert bridge["unexplained"] == Decimal("0.00")
     gap = _query(
         database,

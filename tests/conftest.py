@@ -11,6 +11,7 @@ from l2c.generate import generate_data
 from l2c.generate.writer import write_files
 from l2c.load import load_files
 from l2c.paths import CONFIG_DIR
+from l2c.pipeline import run_pipeline
 
 
 def _manifest(database: Path) -> list[tuple]:
@@ -24,10 +25,28 @@ def _manifest(database: Path) -> list[tuple]:
 
 
 @pytest.fixture(scope="session")
-def built(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Path]:
+def pipeline_db(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    directory = tmp_path_factory.mktemp("pipeline")
+    database = directory / "test.duckdb"
+    result = run_pipeline(
+        seed=42,
+        mapping_path=CONFIG_DIR / "mapping.yml",
+        raw_dir=directory / "raw",
+        output_dir=directory / "out",
+        db_path=database,
+        artifact_dir=directory,
+    )
+    assert result.report.html_path.is_file()
+    assert result.report.workbook_path.is_file()
+    assert result.proposals.path.is_file()
+    return database
+
+
+@pytest.fixture(scope="session")
+def built(tmp_path_factory: pytest.TempPathFactory, pipeline_db: Path) -> dict[str, Path]:
     tables = generate_data(seed=42).tables
-    databases = {}
-    for format_name in ("default", "ch", "de", "hubspot_ui"):
+    databases = {"default": pipeline_db}
+    for format_name in ("ch", "de", "hubspot_ui"):
         directory = tmp_path_factory.mktemp(f"dbt-{format_name}")
         mapping_path = CONFIG_DIR / (
             "mapping.yml" if format_name == "default" else f"mapping.{format_name}.yml"

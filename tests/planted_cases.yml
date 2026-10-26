@@ -1,7 +1,7 @@
 # Synthetic fixture contract; no real company data.
 # All supporting records are listed by canonical key.
 # expected_checks includes failed push checks; READY is never an exception.
-# A null bridge_category imposes no additional bridge requirement for that case.
+# A null bridge_category expects no non-zero bridge contribution for that case.
 # Quarantine reasons use the same cause names in matching and reports.
 # Merge findings identify the newer duplicate; the older record is primary.
 schema_version: 1
@@ -430,7 +430,7 @@ cases:
     expected_push_reasons: []
     money_at_risk_chf:
       A6: null
-    bridge_category: crm_arr_not_valued
+    bridge_category: crm_data_gaps
     bridge_amount_chf: 12000
     expected_quarantine: []
   PLANT-A09:
@@ -723,7 +723,7 @@ cases:
     expected_push_reasons: []
     money_at_risk_chf:
       A12: null
-    bridge_category: crm_arr_not_valued
+    bridge_category: crm_data_gaps
     bridge_amount_chf: 12000
     expected_quarantine: []
   PLANT-A18:
@@ -1402,7 +1402,7 @@ cases:
     expected_push_reasons: []
     money_at_risk_chf:
       A5: null
-    bridge_category: crm_arr_not_valued
+    bridge_category: crm_data_gaps
     bridge_amount_chf: 12000
     expected_quarantine: []
   PLANT-R09:

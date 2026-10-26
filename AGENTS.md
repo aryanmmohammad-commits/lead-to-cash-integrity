@@ -8,6 +8,15 @@ proposes fixes that a person approves before anything is written back to HubSpot
 
 It is an independent demo on synthetic data. No real company data, ever.
 
+## Status
+
+v0.1 includes deterministic synthetic generation in four export formats, the raw loader,
+dbt checks and ARR reconciliation, fix proposals, the HTML report, Excel review workbook,
+offline Slack digest (explicit sending is available), planted-case tests and CI.
+Exception memory and workbook decision import, safe live HubSpot fixes with rollback,
+`l2c doctor`, read-only HubSpot/Younium API pulls and a Kafka order-changed consumer are
+v0.2 roadmap work. The architecture and safety rules below also describe that planned work.
+
 The whole flow:
 
 ```
@@ -272,10 +281,11 @@ Sort OVERDUE first, then DRAFT_ONLY, BLOCKED and READY, oldest contract start fi
   billing_only_change (R10), renewed_in_billing_only (auto-renew versions with no deal, active in
   billing after the CRM contract ended), quarantined, value_mismatch (matched pairs flagged R3,
   R5 or R6), timing (matched pairs flagged R4), within_tolerance (other matched pairs with a
-  difference), `crm_arr_not_valued` (a matched, billed closedwon contract cannot contribute CRM
+  difference), `crm_data_gaps`, displayed as **CRM data gaps (blank amount or dates)**
+  (a matched, billed closedwon contract cannot contribute CRM
   ARR because its amount or contract dates are missing, or its end is on/before its start),
   unexplained (anything left). Intentional audit cases A08, A17 and R08 belong to
-  `crm_arr_not_valued`; the default seed must have zero unexplained ARR.
+  `crm_data_gaps`; the default seed must have zero unexplained ARR.
   The sum of all categories must equal billing ARR minus CRM ARR to the cent.
 - The report's gap waterfall starts at zero, shows non-zero bridge categories in descending
   absolute amount, and ends at the total gap. Labels use whole CHF with thousands separators.

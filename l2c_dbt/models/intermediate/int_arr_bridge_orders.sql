@@ -91,7 +91,7 @@ select b.*, coalesce(c.billing_change_chf, 0)::decimal(38,2) as billing_change_c
          when is_duplicate_push then 'double_billed'
          when is_billing_only_renewal then 'renewed_in_billing_only'
          when is_billing_only then 'billed_not_in_crm'
-         when has_unvalued_crm_contract and crm_deal_count = 0 then 'crm_arr_not_valued'
+         when has_unvalued_crm_contract and crm_deal_count = 0 then 'crm_data_gaps'
          when has_value_mismatch then 'value_mismatch'
          when has_timing_mismatch then 'timing'
          when crm_deal_count > 0 and billing_version is not null then 'within_tolerance'

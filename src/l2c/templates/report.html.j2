@@ -67,7 +67,7 @@
         {% if not loop.last %}<line x1="{{ bar.x + bar.width }}" x2="{{ bar.x + chart.step }}" y1="{{ bar.next_y }}" y2="{{ bar.next_y }}" stroke="#8998a3" stroke-dasharray="3 3"/>{% endif %}
       {% endfor %}
     </svg></div>
-    <p class="muted">Signed contributions total {{ data.gap | chf_whole }}. Positive contributions increase the gap; negative contributions decrease it.</p>
+    <p class="muted">A positive bar means billing ARR is higher than CRM ARR for that cause; a negative bar means it is lower.</p>
   </section>
 
   <section id="push-readiness"><h2>Push readiness</h2><div class="scroll"><table>

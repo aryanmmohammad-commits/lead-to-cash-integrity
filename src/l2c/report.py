@@ -63,6 +63,8 @@ def quarantine_summary(data: ReviewData) -> list[Row]:
 
 
 def bridge_label(category: str) -> str:
+    if category == "crm_data_gaps":
+        return "CRM data gaps (blank amount or dates)"
     return " ".join(
         word.upper() if word.lower() in {"crm", "arr"} else word
         for word in category.replace("_", " ").capitalize().split()
@@ -185,7 +187,13 @@ def _workbook_tables(data: ReviewData) -> dict[str, Table]:
             (*fixes.columns, "approved"), [{**row, "approved": None} for row in fixes.rows]
         ),
         "Push readiness": data.tables["push_readiness"],
-        "ARR bridge": data.tables["arr_bridge"],
+        "ARR bridge": Table(
+            data.tables["arr_bridge"].columns,
+            [
+                {**row, "category": bridge_label(row["category"])}
+                for row in data.tables["arr_bridge"].rows
+            ],
+        ),
         "Quarantine": Table(
             (*quarantine.columns, "valuation"),
             [{**row, "valuation": "not valued"} for row in quarantine.rows],

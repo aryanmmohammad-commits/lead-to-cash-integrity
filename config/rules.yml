@@ -76,7 +76,7 @@ push_check_ids:
   required_fields: P4
   line_total: P5
 merge_property: merge
-arr_bridge_categories: [won_not_billed, not_yet_billed, billed_not_in_crm, double_billed, billing_only_change, renewed_in_billing_only, quarantined, crm_arr_not_valued, value_mismatch, timing, within_tolerance, unexplained]
+arr_bridge_categories: [won_not_billed, not_yet_billed, billed_not_in_crm, double_billed, billing_only_change, renewed_in_billing_only, quarantined, crm_data_gaps, value_mismatch, timing, within_tolerance, unexplained]
 check_catalog:
   A1:
     description: Invalid or missing contact lifecycle
