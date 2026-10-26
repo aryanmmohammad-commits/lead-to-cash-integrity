@@ -8,7 +8,7 @@ with candidates as (
         case when term_months is null then 'term months' end,
         case when billing_frequency is null then 'billing frequency' end,
         case when currency is null then 'currency' end
-      ], field -> field is not null) as missing_fields
+      ], lambda field: field is not null) as missing_fields
     from {{ ref('int_deal_context') }} d
     where is_closed_won and motion = {{ rule_value('new_deal_motion') }}
       and not is_matched and not has_untrusted_order
@@ -23,7 +23,7 @@ with candidates as (
                or (amount = 0 and coalesce(line_item_total, 0) <> 0)
                or line_item_gap_pct > {{ rule('push_line_item_tolerance_pct') }}
              then {{ sql_string(rule('push_check_ids')['line_total']) }} end
-      ], check_id -> check_id is not null) as failed_checks,
+      ], lambda check_id: check_id is not null) as failed_checks,
       list_filter([
         case when len(company_ids) <> 1
              then 'deal has ' || len(company_ids) || ' associated companies' end,
@@ -42,7 +42,7 @@ with candidates as (
              when line_item_gap_pct > {{ rule('push_line_item_tolerance_pct') }}
                then 'line-item total differs from deal amount by ' || line_item_gap_pct
                     || '% (tolerance ' || cast({{ rule('push_line_item_tolerance_pct') }} as varchar) || '%)' end
-      ], reason -> reason is not null) as failure_reasons
+      ], lambda reason: reason is not null) as failure_reasons
     from candidates
 ), classified as (
     select *,

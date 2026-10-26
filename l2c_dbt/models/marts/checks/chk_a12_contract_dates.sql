@@ -5,7 +5,7 @@ with evaluated as (
       case when contract_end > contract_start
              and abs(term_months - date_diff('month', contract_start, contract_end)) > {{ rule('term_tolerance_months') }}
            then 'term mismatch' end
-    ], reason -> reason is not null) as reasons
+    ], lambda reason: reason is not null) as reasons
     from {{ ref('int_deal_context') }} d where is_closed_won
 )
 select {{ finding('A12', 'deal', 'd.deal_id', 'd.owner_id', "array_to_string(d.reasons, '; ')",

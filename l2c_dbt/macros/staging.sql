@@ -46,7 +46,7 @@
           try_cast({{ map_value(table, column) }} as boolean)
         {% elif column in spec.get('lists', []) %}
           list_filter(list_transform(string_split(coalesce({{ map_value(table, column) }}, ''), ';'),
-            item -> nullif(trim(item), '')), item -> item is not null)
+            lambda item: nullif(trim(item), '')), lambda item: item is not null)
         {% elif column == spec.get('email') %}
           lower(replace({{ map_value(table, column) }}, ' ', ''))
         {% else %}
