@@ -1,5 +1,7 @@
-"""CLI scaffold. Pipeline commands intentionally fail until they are built."""
+"""Offline integrity pipeline and explicit placeholders for the v0.2 roadmap."""
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Annotated, NoReturn
 
@@ -8,10 +10,14 @@ import typer
 
 from l2c.config import ConfigError
 from l2c.dbt_runner import build_models, preview_table
+from l2c.fixes import propose_fixes
 from l2c.generate import ExportFormat, Profile, generate_files
 from l2c.load import load_files
 from l2c.logging_setup import setup_logging
-from l2c.paths import RAW_DIR
+from l2c.paths import OUT_DIR, RAW_DIR
+from l2c.pipeline import run_pipeline
+from l2c.report import write_report
+from l2c.slack import build_digest, send_digest
 
 MappingOption = Annotated[
     Path,
@@ -32,9 +38,23 @@ app.add_typer(fixes_app, name="fixes")
 app.add_typer(pull_app, name="pull")
 
 
-def _not_built() -> NoReturn:
-    typer.echo("not built yet")
+def _planned() -> NoReturn:
+    typer.echo("planned for v0.2 - see README roadmap")
     raise typer.Exit(code=1)
+
+
+@contextmanager
+def _output_command() -> Iterator[None]:
+    logger = setup_logging()
+    try:
+        yield
+    except (ValueError, OSError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    finally:
+        for handler in logger.handlers[:]:
+            logger.removeHandler(handler)
+            handler.close()
 
 
 @app.command()
@@ -113,43 +133,54 @@ def build(mapping: MappingOption = DEFAULT_MAPPING) -> None:
 @app.command()
 def remember() -> None:
     """Update exception memory after a build."""
-    _not_built()
+    _planned()
 
 
 @decisions_app.command(name="import")
 def import_decisions() -> None:
     """Import decisions from the review workbook."""
-    _not_built()
+    _planned()
 
 
 @fixes_app.command()
-def propose() -> None:
+def propose(output_dir: Annotated[Path, typer.Option("--output-dir")] = OUT_DIR) -> None:
     """Export fix proposals for human approval."""
-    _not_built()
+    with _output_command():
+        result = propose_fixes(output_dir=output_dir)
+    typer.echo(f"Wrote {result.rows} proposals to {result.path}")
 
 
 @fixes_app.command()
 def apply() -> None:
     """Plan approved fixes; applying fixes will default to a dry run."""
-    _not_built()
+    _planned()
 
 
 @fixes_app.command()
 def rollback() -> None:
     """Plan restoration of values from a previous fix run."""
-    _not_built()
+    _planned()
 
 
 @app.command()
-def report() -> None:
+def report(output_dir: Annotated[Path, typer.Option("--output-dir")] = OUT_DIR) -> None:
     """Create the HTML report and Excel review workbook."""
-    _not_built()
+    with _output_command():
+        result = write_report(output_dir=output_dir)
+    typer.echo(f"Wrote {result.html_path}\nWrote {result.workbook_path}")
 
 
 @app.command()
-def slack() -> None:
+def slack(
+    send: Annotated[bool, typer.Option("--send", help="Post using SLACK_WEBHOOK_URL.")] = False,
+) -> None:
     """Preview the Slack digest."""
-    _not_built()
+    with _output_command():
+        message = build_digest()
+        typer.echo(message)
+        if send:
+            send_digest(message)
+            typer.echo("Slack digest sent")
 
 
 @app.command()
@@ -171,25 +202,49 @@ def show(
 @app.command()
 def doctor(mapping: MappingOption = DEFAULT_MAPPING) -> None:
     """Check source exports against the mapping without changing them."""
-    _not_built()
+    _planned()
 
 
 @pull_app.command()
 def hubspot(mapping: MappingOption = DEFAULT_MAPPING) -> None:
     """Pull read-only HubSpot data into the source file layout."""
-    _not_built()
+    _planned()
 
 
 @pull_app.command()
 def younium(mapping: MappingOption = DEFAULT_MAPPING) -> None:
     """Pull read-only Younium data into the source file layout."""
-    _not_built()
+    _planned()
 
 
 @app.command()
-def run(mapping: MappingOption = DEFAULT_MAPPING) -> None:
+def run(
+    context: typer.Context,
+    mapping: MappingOption = DEFAULT_MAPPING,
+    seed: Annotated[int, typer.Option()] = 42,
+    format_name: Annotated[ExportFormat, typer.Option("--format")] = ExportFormat.DEFAULT,
+    raw_dir: Annotated[Path, typer.Option("--raw-dir")] = RAW_DIR,
+    output_dir: Annotated[Path, typer.Option("--output-dir")] = OUT_DIR,
+    force: Annotated[
+        bool, typer.Option(help="Override the loader's row-count sanity gate.")
+    ] = False,
+) -> None:
     """Run the complete synthetic-data pipeline."""
-    _not_built()
+    source = context.get_parameter_source("mapping")
+    selected_mapping = None if source is not None and source.name == "DEFAULT" else mapping
+    with _output_command():
+        result = run_pipeline(
+            mapping_path=selected_mapping,
+            seed=seed,
+            format_name=format_name.value,
+            raw_dir=raw_dir,
+            output_dir=output_dir,
+            force=force,
+        )
+    typer.echo(
+        f"Pipeline complete; run {result.run_id}\nWrote {result.proposals.path}\n"
+        f"Wrote {result.report.html_path}\nWrote {result.report.workbook_path}"
+    )
 
 
 if __name__ == "__main__":

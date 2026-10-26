@@ -420,25 +420,34 @@ git add . ; git commit -m "Fixes apply and rollback"   # save point
 
 ---
 
-## Task 9: Report, review workbook, Slack digest
+## Task 9 (MIDDLE): Report, review workbook, Slack digest
 
 ```
 Read AGENTS.md first and follow it.
 
-1. "l2c report" writes:
-   - out/report.html: ONE self-contained file (inline CSS, no external files or scripts). At the
-     top the weekly change line. Then: scorecard with the score history trend (inline SVG),
-     ARR bridge as an inline SVG waterfall from CRM ARR to billing ARR, push-readiness list,
-     exceptions grouped by owner and sorted by money at risk, then by age. Every amount in CHF.
-     A footer line: "Synthetic data. Independent demo."
-   - out/review.xlsx with tabs Scorecard, Exceptions (with empty decision, reason, assignee
-     columns), Fixes (with empty approved column), Push readiness, ARR bridge. Header row bold
-     and frozen, columns sized to content.
-2. src/l2c/slack.py and "l2c slack": build a message with the score, the ARR gap, the change
-   line and the top 5 exceptions by money at risk. Print it by default; "--send" posts it only
-   if env SLACK_WEBHOOK_URL is set.
-3. "l2c run": generate, load, build, remember, fixes propose, report, in that order, and stop
-   at the first failure.
+Skip exception memory, the change line and score history; those are v0.2.
+
+1. "l2c fixes propose": write out/fix_proposals.csv from fix_proposals, with an empty
+   "approved" column at the end.
+2. "l2c report" writes:
+   - out/report.html: ONE self-contained file (inline CSS, no external files or scripts).
+     Top: CRM ARR, billing ARR and the gap, in CHF. Then: the scorecard table; the ARR
+     bridge as an inline SVG gap waterfall from zero to the total gap; the push-readiness
+     list; exceptions grouped by owner, sorted by money at risk, then severity; a
+     quarantine summary (count per reason, marked "not valued" where there is no CHF
+     amount). Footer: "Synthetic data. Independent demo."
+   - out/review.xlsx with tabs Scorecard, Exceptions (empty decision, reason, assignee
+     columns), Fixes (empty approved column), Push readiness, ARR bridge, Quarantine.
+     Header row bold and frozen, columns sized to content.
+3. "l2c slack": print a message with the gap, the scorecard summary and the top 5
+   exceptions by money at risk. "--send" posts it only if env SLACK_WEBHOOK_URL is set.
+4. "l2c run": generate, load, build, fixes propose, report, in that order; stop at the
+   first failure.
+5. The commands not in this version (remember, decisions import, fixes apply,
+   fixes rollback, doctor, pull hubspot, pull younium) print
+   "planned for v0.2 - see README roadmap" and exit 1.
+6. Tests: the HTML contains PLANT-R04 and its CHF amount; the workbook has all six tabs;
+   fix_proposals.csv has the approved column.
 
 Commit message suggestion: "Report and workbook".
 ```

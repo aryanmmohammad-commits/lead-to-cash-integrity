@@ -32,7 +32,7 @@ with deals as (
       coalesce(c.n = 1 or (d.motion = {{ sql_string(var('rules')['new_deal_motion']) }}
                           and c.n = c.order_count), false) as may_match,
       case when c.n > 1 and not (d.motion = {{ sql_string(var('rules')['new_deal_motion']) }}
-                                and c.n = c.order_count) then 'ambiguous' end as quarantine_reason,
+                                and c.n = c.order_count) then 'multiple_deal_order_matches' end as quarantine_reason,
       case when d.motion = {{ sql_string(var('rules')['new_deal_motion']) }} and c.n = c.order_count
            then list_slice(c.order_numbers, 2, c.n) else []::varchar[] end as duplicate_order_numbers
     from deals d left join counts c using (deal_id)

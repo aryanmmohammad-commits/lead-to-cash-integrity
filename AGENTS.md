@@ -96,7 +96,9 @@ lead-to-cash-integrity/
 5. **Dirty data is a finding, not a build failure.** dbt tests guard our own models (keys,
    structure, output values). Never put accepted_values tests on dirty source columns.
 6. **Never guess a match.** If a matching step finds two or more candidates, the row goes to
-   quarantine with reason "ambiguous". It is reported, never silently picked.
+   quarantine with its specific cause: `multiple_company_id_matches`,
+   `multiple_company_domain_matches` or `multiple_deal_order_matches`. Overlapping versions use
+   `overlapping_order_versions`. It is reported, never silently picked.
 7. **State is owned by Python.** The `state` schema (exception log, decisions, history, change
    log, run manifest) is written only by Python. dbt never creates, drops or writes `state`.
 8. **Network calls happen only** in `fixes apply --live`, `fixes rollback --live` and
@@ -106,6 +108,8 @@ lead-to-cash-integrity/
    (one or two rows each); the random background layer stays thin. Fixed seed, byte-identical
    output. Planted records use IDs that start with `PLANT-`; background records never do.
    `--profile large --scale N` multiplies only the background, for stress runs; never committed.
+   Planted cases cycle through `planted_owner_ids` in sorted case-ID order, independently of
+   the seed and background scale. Deliberately missing/unknown owners and finance ownership stay intact.
 10. **Every rule has a planted case** in tests/planted_cases.yml and a pytest that asserts its
     exact expected result.
 11. **DuckDB lock on Windows:** close every Python DuckDB connection before running dbt, and
@@ -169,14 +173,19 @@ Real exports differ from the synthetic ones, so every difference is configuratio
   DuckDB `try_` functions. Raw stays text.
 - **Quarantine** (model `quarantine`: source_table, record_id, column, raw_value, reason). Rows
   that cannot be trusted go here, are counted in the report, and are left out of matching and
-  ARR. Reasons: `ambiguous_domain`, `generic_email_domain` (domains in
-  `generic_email_domains` are never used for matching), `no_fx_rate`, `unparseable_amount`,
-  `unparseable_date`, `id_corrupted_by_excel` (an ID like `1.23457E+11`).
+  ARR. Each cause has one name: `multiple_company_domain_matches` (a domain matches several
+  companies), `multiple_company_id_matches` (an explicit company ID matches several rows),
+  `multiple_deal_order_matches` (a deal matches several billing versions/orders),
+  `overlapping_order_versions` (several versions are effective at the same month-end),
+  `generic_email_domain` (domains in `generic_email_domains` are never used for matching),
+  `no_fx_rate`, `unparseable_amount`, `unparseable_date`, and `id_corrupted_by_excel`
+  (an ID like `1.23457E+11`). No generic `ambiguous` quarantine reason is used.
 
 ## Matching (int_account_match, int_deal_order_match)
 
 Account to company, in order: (1) account.hubspot_company_id; (2) cleaned domain equals one
-company's cleaned domain; (3) two or more companies match -> quarantine "ambiguous";
+company's cleaned domain; (3) two or more companies match -> quarantine
+`multiple_company_domain_matches` (or `multiple_company_id_matches` for the explicit-ID step);
 (4) none -> unmatched.
 Cleaned domain: lowercase; remove http://, https://, www., trailing slash and any path.
 
@@ -216,7 +225,13 @@ Evidence-based lifecycle for a contact, from its company's deals: company has a 
 
 ### P. Push-readiness (closedwon deals of motion new, not yet matched to an order)
 
-Status READY only if all pass; otherwise BLOCKED with every failing reason.
+`push_readiness` includes `days_since_contract_start`, calculated using `as_of_date`, and
+every failing P1-P5 check as a human-readable reason, with stable IDs in `failed_checks`.
+Status precedence: DRAFT_ONLY if only a Draft order exists; otherwise OVERDUE if
+`days_since_contract_start > won_not_billed_days`; otherwise BLOCKED if any P1-P5 check fails;
+otherwise READY. Exactly the grace-period limit is not overdue. Age/draft statuses retain all
+failing P reasons; they do not create extra P failures (R1 captures overdue billing).
+Sort OVERDUE first, then DRAFT_ONLY, BLOCKED and READY, oldest contract start first within status.
 
 | ID | Must be true |
 |----|--------------|
@@ -257,8 +272,14 @@ Status READY only if all pass; otherwise BLOCKED with every failing reason.
   billing_only_change (R10), renewed_in_billing_only (auto-renew versions with no deal, active in
   billing after the CRM contract ended), quarantined, value_mismatch (matched pairs flagged R3,
   R5 or R6), timing (matched pairs flagged R4), within_tolerance (other matched pairs with a
-  difference), unexplained (anything left).
+  difference), `crm_arr_not_valued` (a matched, billed closedwon contract cannot contribute CRM
+  ARR because its amount or contract dates are missing, or its end is on/before its start),
+  unexplained (anything left). Intentional audit cases A08, A17 and R08 belong to
+  `crm_arr_not_valued`; the default seed must have zero unexplained ARR.
   The sum of all categories must equal billing ARR minus CRM ARR to the cent.
+- The report's gap waterfall starts at zero, shows non-zero bridge categories in descending
+  absolute amount, and ends at the total gap. Labels use whole CHF with thousands separators.
+  CRM ARR and billing ARR appear in the top cards only.
 
 ## Exception memory (memory.py, state schema)
 

@@ -2,7 +2,7 @@
 # All supporting records are listed by canonical key.
 # expected_checks includes failed push checks; READY is never an exception.
 # A null bridge_category imposes no additional bridge requirement for that case.
-# R07 uses matching reason ambiguous; quarantine materializes ambiguous_domain.
+# Quarantine reasons use the same cause names in matching and reports.
 # Merge findings identify the newer duplicate; the older record is primary.
 schema_version: 1
 as_of_date: '2026-10-31'
@@ -73,11 +73,11 @@ cases:
     - source_table: younium_orders
       record_id: PLANT-O-B02:1
       column: version
-      reason: ambiguous
+      reason: overlapping_order_versions
     - source_table: younium_orders
       record_id: PLANT-O-B02:2
       column: version
-      reason: ambiguous
+      reason: overlapping_order_versions
   PLANT-B01:
     records:
       hubspot_companies:
@@ -104,7 +104,7 @@ cases:
       object_type: deal
       record_id: PLANT-B01
       severity: risk
-      owner_id: OWN-000001
+      owner_id: OWN-000003
       money_at_risk_chf: null
     expected_proposals: []
     expected_push_status: null
@@ -181,7 +181,7 @@ cases:
       object_type: contact
       record_id: PLANT-A02
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000002
       money_at_risk_chf: null
     expected_proposals:
     - action: set_property
@@ -217,7 +217,7 @@ cases:
       object_type: contact
       record_id: PLANT-A03
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000003
       money_at_risk_chf: null
     expected_proposals:
     - action: set_property
@@ -260,7 +260,7 @@ cases:
       object_type: contact
       record_id: PLANT-A04
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000004
       money_at_risk_chf: null
     expected_proposals:
     - action: set_property
@@ -303,7 +303,7 @@ cases:
       object_type: contact
       record_id: PLANT-A05
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000005
       money_at_risk_chf: null
     expected_proposals:
     - action: set_property
@@ -346,7 +346,7 @@ cases:
       object_type: contact
       record_id: PLANT-A06
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000006
       money_at_risk_chf: null
     expected_proposals: []
     expected_push_status: null
@@ -387,8 +387,10 @@ cases:
       money_at_risk_chf: null
     expected_proposals: []
     expected_push_status: BLOCKED
+    expected_days_since_contract_start: 3
+    expected_push_failed_checks: ["P5"]
     expected_push_reasons:
-    - P5
+    - "deal amount is blank or unparseable"
     money_at_risk_chf:
       A5: null
       P5: null
@@ -421,14 +423,15 @@ cases:
       object_type: deal
       record_id: PLANT-A08
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000002
       money_at_risk_chf: null
     expected_proposals: []
     expected_push_status: null
     expected_push_reasons: []
     money_at_risk_chf:
       A6: null
-    bridge_category: null
+    bridge_category: crm_arr_not_valued
+    bridge_amount_chf: 12000
     expected_quarantine: []
   PLANT-A09:
     records:
@@ -446,7 +449,7 @@ cases:
       object_type: company
       record_id: PLANT-A09b
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000003
       money_at_risk_chf: null
     expected_proposals:
     - action: merge
@@ -479,7 +482,7 @@ cases:
       object_type: deal
       record_id: PLANT-A10
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000004
       money_at_risk_chf: null
     expected_proposals: []
     expected_push_status: null
@@ -535,7 +538,7 @@ cases:
       object_type: company
       record_id: PLANT-A12
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000006
       money_at_risk_chf: null
     expected_proposals:
     - action: set_property
@@ -606,7 +609,7 @@ cases:
       object_type: contact
       record_id: PLANT-A14b
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000002
       money_at_risk_chf: null
     expected_proposals:
     - action: merge
@@ -675,7 +678,7 @@ cases:
       object_type: deal
       record_id: PLANT-A16
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000004
       money_at_risk_chf: null
       reason: future close date
     expected_proposals: []
@@ -712,7 +715,7 @@ cases:
       object_type: deal
       record_id: PLANT-A17
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000005
       money_at_risk_chf: null
       reason: end before start
     expected_proposals: []
@@ -720,7 +723,8 @@ cases:
     expected_push_reasons: []
     money_at_risk_chf:
       A12: null
-    bridge_category: null
+    bridge_category: crm_arr_not_valued
+    bridge_amount_chf: 12000
     expected_quarantine: []
   PLANT-A18:
     records:
@@ -749,7 +753,7 @@ cases:
       object_type: deal
       record_id: PLANT-A18
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000006
       money_at_risk_chf: null
       reason: term mismatch
     expected_proposals: []
@@ -846,12 +850,14 @@ cases:
       object_type: deal
       record_id: PLANT-P01
       severity: risk
-      owner_id: OWN-000001
+      owner_id: OWN-000005
       money_at_risk_chf: null
     expected_proposals: []
     expected_push_status: BLOCKED
+    expected_days_since_contract_start: 3
+    expected_push_failed_checks: ["P1"]
     expected_push_reasons:
-    - P1
+    - "deal has 2 associated companies"
     money_at_risk_chf:
       P1: null
     bridge_category: not_yet_billed
@@ -875,12 +881,14 @@ cases:
       object_type: deal
       record_id: PLANT-P02
       severity: risk
-      owner_id: OWN-000001
+      owner_id: OWN-000006
       money_at_risk_chf: null
     expected_proposals: []
     expected_push_status: BLOCKED
+    expected_days_since_contract_start: 3
+    expected_push_failed_checks: ["P2"]
     expected_push_reasons:
-    - P2
+    - "an associated company is missing a Younium account number"
     money_at_risk_chf:
       P2: null
     bridge_category: not_yet_billed
@@ -916,9 +924,11 @@ cases:
       money_at_risk_chf: null
     expected_proposals: []
     expected_push_status: BLOCKED
+    expected_days_since_contract_start: 3
+    expected_push_failed_checks: ["P3", "P5"]
     expected_push_reasons:
-    - P3
-    - P5
+    - "deal has no line items"
+    - "line-item total is missing because the deal has no line items"
     money_at_risk_chf:
       P3: null
       P5: null
@@ -945,12 +955,14 @@ cases:
       object_type: deal
       record_id: PLANT-P04
       severity: risk
-      owner_id: OWN-000001
+      owner_id: OWN-000002
       money_at_risk_chf: null
     expected_proposals: []
     expected_push_status: BLOCKED
+    expected_days_since_contract_start: 3
+    expected_push_failed_checks: ["P4"]
     expected_push_reasons:
-    - P4
+    - "missing required fields: billing frequency"
     money_at_risk_chf:
       P4: null
     bridge_category: not_yet_billed
@@ -976,12 +988,14 @@ cases:
       object_type: deal
       record_id: PLANT-P05
       severity: risk
-      owner_id: OWN-000001
+      owner_id: OWN-000003
       money_at_risk_chf: null
     expected_proposals: []
     expected_push_status: BLOCKED
+    expected_days_since_contract_start: 3
+    expected_push_failed_checks: ["P5"]
     expected_push_reasons:
-    - P5
+    - "line-item total differs from deal amount by 9.0% (tolerance 1.0%)"
     money_at_risk_chf:
       P5: null
     bridge_category: not_yet_billed
@@ -1003,6 +1017,8 @@ cases:
     check_records: []
     expected_proposals: []
     expected_push_status: READY
+    expected_days_since_contract_start: 3
+    expected_push_failed_checks: []
     expected_push_reasons: []
     money_at_risk_chf: {}
     bridge_category: not_yet_billed
@@ -1231,7 +1247,7 @@ cases:
       object_type: deal
       record_id: PLANT-R03
       severity: leak
-      owner_id: OWN-000001
+      owner_id: OWN-000006
       money_at_risk_chf: 504
     expected_proposals: []
     expected_push_status: null
@@ -1265,8 +1281,11 @@ cases:
       money_at_risk_chf: 18000
       reason: no order
     expected_proposals: []
-    expected_push_status: READY
-    expected_push_reasons: []
+    expected_push_status: OVERDUE
+    expected_days_since_contract_start: 31
+    expected_push_failed_checks: []
+    expected_push_reasons:
+    - "contract started 31 days ago; billing grace period is 30 days"
     money_at_risk_chf:
       R1: 18000
     bridge_category: won_not_billed
@@ -1288,6 +1307,8 @@ cases:
     check_records: []
     expected_proposals: []
     expected_push_status: READY
+    expected_days_since_contract_start: 30
+    expected_push_failed_checks: []
     expected_push_reasons: []
     money_at_risk_chf: {}
     bridge_category: not_yet_billed
@@ -1345,8 +1366,7 @@ cases:
     - source_table: younium_accounts
       record_id: PLANT-R07
       column: domain
-      reason: ambiguous
-      model_reason: ambiguous_domain
+      reason: multiple_company_domain_matches
     expected_match_method: ambiguous
   PLANT-R08:
     records:
@@ -1375,14 +1395,15 @@ cases:
       object_type: deal
       record_id: PLANT-R08
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000005
       money_at_risk_chf: null
     expected_proposals: []
     expected_push_status: null
     expected_push_reasons: []
     money_at_risk_chf:
       A5: null
-    bridge_category: null
+    bridge_category: crm_arr_not_valued
+    bridge_amount_chf: 12000
     expected_quarantine: []
   PLANT-R09:
     records:
@@ -1486,7 +1507,7 @@ cases:
       object_type: deal
       record_id: PLANT-R12
       severity: leak
-      owner_id: OWN-000001
+      owner_id: OWN-000002
       money_at_risk_chf: 6000
     expected_proposals: []
     expected_push_status: null
@@ -1523,7 +1544,7 @@ cases:
       object_type: order
       record_id: PLANT-R13
       severity: leak
-      owner_id: OWN-000001
+      owner_id: OWN-000003
       money_at_risk_chf: 12000
     expected_proposals: []
     expected_push_status: null
@@ -1559,7 +1580,7 @@ cases:
       object_type: order
       record_id: PLANT-R14
       severity: info
-      owner_id: OWN-000001
+      owner_id: OWN-000004
       money_at_risk_chf: 0
     expected_proposals: []
     expected_push_status: null
@@ -1726,7 +1747,7 @@ cases:
       object_type: deal
       record_id: PLANT-R19
       severity: risk
-      owner_id: OWN-000001
+      owner_id: OWN-000003
       money_at_risk_chf: null
     expected_proposals: []
     expected_push_status: null
@@ -1789,12 +1810,15 @@ cases:
       object_type: deal
       record_id: PLANT-R21
       severity: leak
-      owner_id: OWN-000001
+      owner_id: OWN-000005
       money_at_risk_chf: 12000
       reason: only a draft order
     expected_proposals: []
-    expected_push_status: READY
-    expected_push_reasons: []
+    expected_push_status: DRAFT_ONLY
+    expected_days_since_contract_start: 40
+    expected_push_failed_checks: []
+    expected_push_reasons:
+    - "only a Draft billing order exists"
     money_at_risk_chf:
       R1: 12000
     bridge_category: won_not_billed
@@ -1958,7 +1982,7 @@ cases:
       object_type: account
       record_id: PLANT-R25
       severity: hygiene
-      owner_id: OWN-000001
+      owner_id: OWN-000003
       money_at_risk_chf: null
     expected_proposals: []
     expected_push_status: null

@@ -126,6 +126,25 @@ def test_seed_affects_only_random_background_and_historical_fx(generated: Genera
     assert other.tables["ref_product_catalog"] == generated.tables["ref_product_catalog"]
 
 
+def test_planted_cases_are_balanced_across_the_six_configured_owners(
+    generated: GeneratedData,
+) -> None:
+    owners = load_rules().planted_owner_ids
+    assignments: Counter = Counter()
+    for index, (case_id, records) in enumerate(sorted(generated.planted_records.items())):
+        expected = owners[index % len(owners)]
+        assigned = {
+            row["owner_id"]
+            for table in ("hubspot_companies", "hubspot_contacts", "hubspot_deals")
+            for row in records.get(table, [])
+            if row["owner_id"] in owners
+        }
+        assert assigned == {expected}, case_id
+        assignments[expected] += 1
+    assert set(assignments) == set(owners)
+    assert max(assignments.values()) - min(assignments.values()) <= 1
+
+
 def test_keys_references_and_version_bookings_are_complete(
     generated: GeneratedData, manifest: dict
 ) -> None:
@@ -464,7 +483,7 @@ def test_push_cases_have_isolated_failures(generated: GeneratedData, manifest: d
     expected = [["P1"], ["P2"], ["P3", "P5"], ["P4"], ["P5"], []]
     for index, reasons in enumerate(expected, 1):
         case_id = f"PLANT-P{index:02d}"
-        assert manifest["cases"][case_id]["expected_push_reasons"] == reasons
+        assert manifest["cases"][case_id]["expected_push_failed_checks"] == reasons
         assert _only(cases[case_id], "hubspot_deals")["contract_start"] == date(2026, 10, 28)
         assert "younium_orders" not in cases[case_id]
 

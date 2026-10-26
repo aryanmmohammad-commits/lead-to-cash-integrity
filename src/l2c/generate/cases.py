@@ -521,8 +521,13 @@ def overlapping_billing_versions(b: FixtureBuilder) -> None:
 
 def add_planted_cases(data: Dataset, rules: RulesConfig) -> dict[str, Dataset]:
     records = {}
-    for case_id, function in sorted(CASES.items()):
+    for index, (case_id, function) in enumerate(sorted(CASES.items())):
         builder = FixtureBuilder(data, rules, case_id)
         function(builder)
+        owner = rules.planted_owner_ids[index % len(rules.planted_owner_ids)]
+        for table in ("hubspot_companies", "hubspot_contacts", "hubspot_deals"):
+            for row in builder.records.get(table, []):
+                if row.get("owner_id") in rules.planted_owner_ids:
+                    row["owner_id"] = owner
         records[case_id] = {table: rows for table, rows in builder.records.items() if rows}
     return records

@@ -12,6 +12,9 @@ with billing as (
 ), evidence as (
     select m.order_number,
         bool_or(d.is_closed_won) as has_won_deal,
+        bool_or(d.is_closed_won and (d.amount is null or d.contract_start is null
+                or d.contract_end is null or d.contract_end <= d.contract_start))
+            as has_unvalued_crm_contract,
         bool_or(exists (select 1 from {{ ref('exceptions') }} e
                         where e.record_id = d.deal_id and e.object_type = 'deal'
                           and e.check_id in ('R3', 'R5', 'R6'))) as has_value_mismatch,
@@ -44,6 +47,7 @@ with billing as (
         coalesce(c.crm_arr_chf, 0)::decimal(38,2) as crm_arr_chf,
         coalesce(c.crm_deal_count, 0) as crm_deal_count,
         coalesce(e.has_won_deal, false) as has_won_deal,
+        coalesce(e.has_unvalued_crm_contract, false) as has_unvalued_crm_contract,
         coalesce(e.has_value_mismatch, false) as has_value_mismatch,
         coalesce(e.has_timing_mismatch, false) as has_timing_mismatch,
         q.order_number is not null as is_quarantined,
@@ -87,6 +91,7 @@ select b.*, coalesce(c.billing_change_chf, 0)::decimal(38,2) as billing_change_c
          when is_duplicate_push then 'double_billed'
          when is_billing_only_renewal then 'renewed_in_billing_only'
          when is_billing_only then 'billed_not_in_crm'
+         when has_unvalued_crm_contract and crm_deal_count = 0 then 'crm_arr_not_valued'
          when has_value_mismatch then 'value_mismatch'
          when has_timing_mismatch then 'timing'
          when crm_deal_count > 0 and billing_version is not null then 'within_tolerance'

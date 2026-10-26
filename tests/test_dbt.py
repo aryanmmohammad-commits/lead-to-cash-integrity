@@ -4,7 +4,7 @@ import shutil
 from collections import Counter
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -50,26 +50,6 @@ def logs() -> Iterator[None]:
         for handler in logger.handlers[:]:
             logger.removeHandler(handler)
             handler.close()
-
-
-@pytest.fixture(scope="module")
-def built(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Path]:
-    tables = generate_data(seed=42).tables
-    databases = {}
-    for format_name in ("default", "ch", "de", "hubspot_ui"):
-        directory = tmp_path_factory.mktemp(f"dbt-{format_name}")
-        mapping_path = CONFIG_DIR / (
-            "mapping.yml" if format_name == "default" else f"mapping.{format_name}.yml"
-        )
-        write_files(tables, load_mapping(mapping_path), directory / "raw", format_name=format_name)
-        database = directory / "test.duckdb"
-        load_files(mapping_path=mapping_path, raw_dir=directory / "raw", db_path=database)
-        before = _query(database, "SELECT * FROM state.run_manifest ORDER BY 1, 2")
-        result = build_models(mapping_path=mapping_path, db_path=database, artifact_dir=directory)
-        assert result.nodes >= 62
-        assert _query(database, "SELECT * FROM state.run_manifest ORDER BY 1, 2") == before
-        databases[format_name] = database
-    return databases
 
 
 def test_all_staging_models_have_real_types_and_cleaned_fields(built: dict[str, Path]) -> None:
@@ -160,8 +140,8 @@ def test_quarantine_has_exact_planted_findings_and_retains_raw_evidence(
         "FROM marts.quarantine ORDER BY 1,2,3",
     )
     assert set(rows) == {
-        ("younium_orders", "PLANT-O-B02:1", "version", "1", "ambiguous"),
-        ("younium_orders", "PLANT-O-B02:2", "version", "2", "ambiguous"),
+        ("younium_orders", "PLANT-O-B02:1", "version", "1", "overlapping_order_versions"),
+        ("younium_orders", "PLANT-O-B02:2", "version", "2", "overlapping_order_versions"),
         ("hubspot_deals", "PLANT-Q02", "currency", "USD", "no_fx_rate"),
         ("younium_accounts", "PLANT-Q01", "domain", "gmail.com", "generic_email_domain"),
         (
@@ -176,7 +156,7 @@ def test_quarantine_has_exact_planted_findings_and_retains_raw_evidence(
             "PLANT-R07",
             "domain",
             "https://www.acme-legal.ch/path",
-            "ambiguous_domain",
+            "multiple_company_domain_matches",
         ),
         ("younium_bookings", "PLANT-O-Q02-V1-BOOK", "currency", "USD", "no_fx_rate"),
         ("younium_invoices", "PLANT-Q04", "amount", "n/a", "unparseable_amount"),
@@ -202,7 +182,7 @@ def test_quarantine_has_exact_planted_findings_and_retains_raw_evidence(
                 item["source_table"],
                 item["record_id"],
                 item["column"],
-                item.get("model_reason", item["reason"]),
+                item["reason"],
             )
             for item in case["expected_quarantine"]
         }
@@ -235,7 +215,7 @@ def test_account_matching_prefers_ids_and_never_picks_an_ambiguous_domain(
     )
     assert set(rows) == {
         ("PLANT-R06", "PLANT-C-R06", "domain", None, 1),
-        ("PLANT-R07", None, "ambiguous", "ambiguous", 2),
+        ("PLANT-R07", None, "ambiguous", "multiple_company_domain_matches", 2),
         ("PLANT-Q01", None, "quarantined", "generic_email_domain", 0),
         ("PLANT-Q03", None, "quarantined", "id_corrupted_by_excel", 1),
         ("PLANT-Y-A09", "PLANT-A09", "hubspot_company_id", None, 1),
@@ -409,12 +389,12 @@ def test_ambiguous_change_deals_are_quarantined_and_drafts_never_become_current(
         adversarial,
         "SELECT candidate_count, order_number, is_matched, quarantine_reason "
         "FROM intermediate.int_deal_order_match WHERE deal_id='PLANT-R12'",
-    ) == [(2, None, False, "ambiguous")]
+    ) == [(2, None, False, "multiple_deal_order_matches")]
     assert _query(
         adversarial,
         "SELECT reason FROM marts.quarantine "
         "WHERE source_table='hubspot_deals' AND record_id='PLANT-R12'",
-    ) == [("ambiguous",)]
+    ) == [("multiple_deal_order_matches",)]
     assert _query(
         adversarial,
         "SELECT version, is_current FROM intermediate.int_order_versions "
@@ -553,9 +533,21 @@ def test_every_planted_check_owner_severity_money_and_proposal_is_exact(
     assert actual_proposals == Counter(expected_proposals)
     if case["expected_push_status"]:
         deal_ids = [key["deal_id"] for key in case["records"]["hubspot_deals"]]
-        push = _query(database, "SELECT deal_id, status, reasons FROM marts.push_readiness")
+        push = _query(
+            database,
+            "SELECT deal_id, status, reasons, failed_checks, days_since_contract_start "
+            "FROM marts.push_readiness",
+        )
         selected = [row for row in push if row[0] in deal_ids]
-        assert selected == [(case_id, case["expected_push_status"], case["expected_push_reasons"])]
+        assert selected == [
+            (
+                case_id,
+                case["expected_push_status"],
+                case["expected_push_reasons"],
+                case["expected_push_failed_checks"],
+                case["expected_days_since_contract_start"],
+            )
+        ]
 
 
 def test_scorecard_denominators_failed_record_counts_and_push_aggregation(
@@ -666,6 +658,10 @@ def configured_checks(tmp_path_factory: pytest.TempPathFactory) -> Path:
     find("hubspot_companies", "company_id", "PLANT-A20")["owner_id"] = None
     find("hubspot_deals", "deal_id", "PLANT-P01")["company_ids"] = None
     find("hubspot_deals", "deal_id", "PLANT-P04")["currency"] = None
+    find("hubspot_deals", "deal_id", "PLANT-P04")["contract_start"] = None
+    find("hubspot_deals", "deal_id", "PLANT-P02")["contract_start"] = (
+        load_rules().as_of_date - timedelta(days=32)
+    )
     find("hubspot_line_items", "deal_id", "PLANT-P06")["sku"] = "no-such-product"
     find("younium_orders", "account_number", "PLANT-R25")["cancellation_date"] = None
     renewal = dict(find("hubspot_deals", "deal_id", "PLANT-D-R13"))
@@ -753,9 +749,20 @@ def test_push_reports_missing_company_currency_and_unknown_sku(configured_checks
         "SELECT deal_id, status, reasons FROM marts.push_readiness "
         "WHERE deal_id IN ('PLANT-P01','PLANT-P04','PLANT-P06') ORDER BY deal_id",
     ) == [
-        ("PLANT-P01", "BLOCKED", ["P1", "P2"]),
-        ("PLANT-P04", "BLOCKED", ["P4"]),
-        ("PLANT-P06", "BLOCKED", ["P3"]),
+        (
+            "PLANT-P01",
+            "BLOCKED",
+            [
+                "deal has 0 associated companies",
+                "deal has no associated company with a Younium account number",
+            ],
+        ),
+        (
+            "PLANT-P04",
+            "BLOCKED",
+            ["missing required fields: contract start, billing frequency, currency"],
+        ),
+        ("PLANT-P06", "BLOCKED", ["a line item has a SKU missing from the product catalog"]),
     ]
 
 
@@ -777,6 +784,105 @@ def test_open_renewals_credits_and_ambiguous_seat_prices(configured_checks: Path
         configured_checks,
         "SELECT count(*) FROM marts.exceptions WHERE check_id='R11' AND record_id='PLANT-R25'",
     ) == [(1,)]
+
+
+def test_push_age_boundaries_draft_precedence_and_all_human_reasons(
+    built: dict[str, Path],
+    configured_checks: Path,
+) -> None:
+    rows = _query(
+        built["default"],
+        "SELECT deal_id, days_since_contract_start, status, failed_checks, reasons "
+        "FROM marts.push_readiness",
+    )
+    by_id = {row[0]: row[1:] for row in rows}
+    assert by_id["PLANT-R04"] == (
+        31,
+        "OVERDUE",
+        [],
+        ["contract started 31 days ago; billing grace period is 30 days"],
+    )
+    assert by_id["PLANT-R21"] == (40, "DRAFT_ONLY", [], ["only a Draft billing order exists"])
+    assert by_id["PLANT-R05"] == (30, "READY", [], [])
+    assert by_id["PLANT-P01"][3] == ["deal has 2 associated companies"]
+    findings = _query(
+        built["default"],
+        "SELECT record_id, check_id, reason FROM marts.chk_p_push_readiness WHERE check_id <> 'P'",
+    )
+    expected = {
+        (record_id, check_id, reason)
+        for record_id, _, _, checks, reasons in rows
+        for check_id, reason in zip(checks, reasons, strict=False)
+    }
+    assert set(findings) == expected
+    assert _query(
+        configured_checks,
+        "SELECT days_since_contract_start, status, failed_checks, reasons "
+        "FROM marts.push_readiness WHERE deal_id='PLANT-P02'",
+    ) == [
+        (
+            32,
+            "OVERDUE",
+            ["P2"],
+            [
+                "an associated company is missing a Younium account number",
+                "contract started 32 days ago; billing grace period is 31 days",
+            ],
+        )
+    ]
+    assert _query(
+        configured_checks,
+        "SELECT days_since_contract_start, status FROM marts.push_readiness "
+        "WHERE deal_id='PLANT-P04'",
+    ) == [(None, "BLOCKED")]
+    assert _query(
+        configured_checks,
+        "SELECT status FROM marts.push_readiness WHERE deal_id='PLANT-R04'",
+    ) == [("READY",)]
+
+
+def test_default_seed_has_zero_unexplained_and_preserves_the_three_real_causes(
+    built: dict[str, Path],
+) -> None:
+    database = built["default"]
+    assert _query(
+        database,
+        "SELECT amount_chf FROM marts.arr_bridge WHERE category='unexplained'",
+    ) == [(Decimal("0.00"),)]
+    assert _query(
+        database,
+        "SELECT record_id, amount_chf FROM intermediate.int_arr_bridge_ledger "
+        "WHERE category='crm_arr_not_valued' AND amount_chf<>0 ORDER BY record_id",
+    ) == [
+        ("PLANT-O-A08", Decimal("12000.00")),
+        ("PLANT-O-A17", Decimal("12000.00")),
+        ("PLANT-O-R08", Decimal("12000.00")),
+    ]
+    assert _query(
+        database,
+        "SELECT deal_id, amount IS NULL, contract_end IS NULL, contract_end < contract_start "
+        "FROM staging.stg_hubspot__deals "
+        "WHERE deal_id IN ('PLANT-A08','PLANT-A17','PLANT-R08') ORDER BY deal_id",
+    ) == [
+        ("PLANT-A08", False, True, None),
+        ("PLANT-A17", False, False, True),
+        ("PLANT-R08", True, False, False),
+    ]
+
+
+def test_quarantine_cause_names_are_consistent_across_matching_and_reported_records(
+    built: dict[str, Path],
+    adversarial: Path,
+) -> None:
+    assert _query(
+        built["default"],
+        "SELECT reason FROM marts.quarantine WHERE record_id='PLANT-R07'",
+    ) == [("multiple_company_domain_matches",)]
+    assert _query(
+        adversarial,
+        "SELECT reason FROM marts.quarantine WHERE record_id='PLANT-R12'",
+    ) == [("multiple_deal_order_matches",)]
+    assert not {"ambiguous", "ambiguous_domain"}.intersection(load_rules().quarantine_reasons)
 
 
 def test_duplicate_push_scorecard_counts_failed_deals_instead_of_duplicate_orders(
@@ -900,6 +1006,8 @@ def test_arr_bridge_totals_are_signed_complete_and_separate_grace_periods(
     assert bridge["not_yet_billed"] == Decimal("-90000.00")
     assert bridge["timing"] == Decimal("-12000.00")
     assert bridge["quarantined"] == Decimal("-12000.00")
+    assert bridge["crm_arr_not_valued"] == Decimal("36000.00")
+    assert bridge["unexplained"] == Decimal("0.00")
     gap = _query(
         database,
         "SELECT (SELECT sum(arr_chf) FROM marts.arr_billing_monthly "

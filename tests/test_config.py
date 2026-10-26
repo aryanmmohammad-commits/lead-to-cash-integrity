@@ -73,6 +73,9 @@ def test_default_configs_are_complete() -> None:
         ("open_deal_lead_status", "not-a-status"),
         ("auto_renew_severity", "urgent"),
         ("arr_bridge_categories", ["timing", "timing"]),
+        ("exception_severity_order", ["leak", "unknown"]),
+        ("push_status_order", ["READY"]),
+        ("planted_owner_ids", []),
     ],
 )
 def test_invalid_rules_name_the_key(tmp_path: Path, key: str, value: object) -> None:

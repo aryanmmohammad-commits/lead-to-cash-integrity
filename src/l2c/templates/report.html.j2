@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lead-to-cash integrity | {{ data.rules.as_of_date }}</title>
+  <style>
+    :root { color-scheme: light; --ink: #172d3e; --muted: #526575; --line: #dce4eb; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f3f6f9; color: var(--ink); font: 15px/1.5 "Segoe UI", Arial, sans-serif; }
+    main { max-width: 1320px; margin: auto; padding: 40px 28px; }
+    h1 { font-size: 32px; letter-spacing: -.6px; margin: 0 0 8px; }
+    h2 { font-size: 23px; margin: 0 0 18px; }
+    h3 { font-size: 17px; margin: 24px 0 10px; }
+    p { margin: 8px 0 18px; } .muted { color: var(--muted); }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 28px 0; }
+    .metric, section { background: white; border: 1px solid var(--line); border-radius: 10px; }
+    .metric { padding: 20px 24px; border-top: 4px solid #173a55; }
+    .metric span { display: block; color: var(--muted); font-size: 14px; }
+    .metric strong { display: block; font-size: 29px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+    .metric small { color: var(--muted); } section { padding: 26px; margin-top: 22px; }
+    .scroll { overflow-x: auto; } table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { background: #eef3f7; font-size: 12px; text-align: left; color: #364f61; }
+    th, td { padding: 11px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    td.money, th.money { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    td.id { white-space: nowrap; font-family: Consolas, monospace; font-size: 12px; }
+    .status { font-weight: 600; } .blocked, .overdue, .leak { color: #a33221; } .ready { color: #11674e; }
+    .draft_only { color: #936010; }
+    .risk { color: #936010; } details { margin-top: 6px; } summary { cursor: pointer; color: var(--muted); }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 480px; font-size: 12px; }
+    .owner-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .owner-id { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+    .owner-total { border-left: 2px solid var(--line); padding-left: 20px; font-weight: 400; color: var(--muted); font-size: 14px; }
+    .waterfall { width: 100%; min-width: 1040px; height: auto; } .waterfall text { font-family: "Segoe UI", Arial, sans-serif; }
+    footer { color: var(--muted); padding: 26px 0 6px; text-align: center; }
+    @media (max-width: 800px) { main { padding: 24px 14px; } .metrics { grid-template-columns: 1fr; } section { padding: 18px; } }
+    @media print { body { background: white; } main { padding: 0; } section, .metric { break-inside: avoid; } .scroll { overflow: visible; } }
+  </style>
+</head>
+<body><main>
+  <header><h1>Lead-to-cash integrity</h1>
+    <p class="muted">As of {{ data.rules.as_of_date }}. ARR at {{ data.month_end }}. All valuations in CHF.</p>
+  </header>
+  <div class="metrics">
+    <div class="metric"><span>CRM ARR</span><strong>{{ data.crm_arr | chf }}</strong></div>
+    <div class="metric"><span>Billing ARR</span><strong>{{ data.billing_arr | chf }}</strong></div>
+    <div class="metric"><span>ARR gap</span><strong>{{ data.gap | chf }}</strong><small>Billing ARR minus CRM ARR</small></div>
+  </div>
+
+  <section id="scorecard"><h2>Scorecard</h2><div class="scroll"><table>
+    <thead><tr><th>Check</th><th>Description</th><th class="money">Rows checked</th><th class="money">Rows failed</th><th class="money">Pass rate</th></tr></thead>
+    <tbody>{% for row in tables.audit_scorecard.rows %}<tr><td>{{ row.check_id }}</td><td>{{ row.description }}</td><td class="money">{{ row.rows_checked }}</td><td class="money">{{ row.rows_failed }}</td><td class="money">{{ row.pass_rate | percent }}</td></tr>{% endfor %}</tbody>
+  </table></div></section>
+
+  <section id="arr-bridge"><h2>ARR gap bridge</h2>
+    <div class="scroll"><svg class="waterfall" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{ chart.width }} {{ chart.height }}" role="img" aria-labelledby="bridge-title bridge-description">
+      <title id="bridge-title">ARR gap waterfall</title>
+      <desc id="bridge-description">Start at zero, add each non-zero category in descending order of absolute size, and finish at the total gap of {{ data.gap | chf_whole }}.</desc>
+      {% for tick in chart.ticks %}<line x1="115" x2="{{ chart.width - 20 }}" y1="{{ tick.y }}" y2="{{ tick.y }}" stroke="#e4eaf0"/><text x="105" y="{{ tick.y + 4 }}" text-anchor="end" font-size="11" fill="#526575">{{ tick.value | chf_whole }}</text>{% endfor %}
+      {% for bar in chart.bars %}
+        <g><title>{{ bar.label }}: {{ bar.amount | chf_whole }}</title>
+          <rect class="{{ bar.kind }}" fill="{{ bar.color }}" x="{{ bar.x }}" y="{{ bar.y }}" width="{{ bar.width }}" height="{{ bar.height }}"/>
+          {% if bar.amount == 0 %}<line x1="{{ bar.x }}" x2="{{ bar.x + bar.width }}" y1="{{ bar.y }}" y2="{{ bar.y }}" stroke="{{ bar.color }}" stroke-width="2"/>{% endif %}
+          <text x="{{ bar.x + bar.width / 2 }}" y="{{ bar.amount_y }}" text-anchor="middle" font-size="10" fill="#172d3e">{{ bar.amount | chf_whole }}</text>
+          <text x="{{ bar.x + bar.width / 2 }}" y="{{ bar.label_y }}" text-anchor="middle" font-size="12" fill="#364f61">{% for line in bar.lines %}<tspan x="{{ bar.x + bar.width / 2 }}" dy="{{ 0 if loop.first else 17 }}">{{ line }}</tspan>{% endfor %}</text>
+        </g>
+        {% if not loop.last %}<line x1="{{ bar.x + bar.width }}" x2="{{ bar.x + chart.step }}" y1="{{ bar.next_y }}" y2="{{ bar.next_y }}" stroke="#8998a3" stroke-dasharray="3 3"/>{% endif %}
+      {% endfor %}
+    </svg></div>
+    <p class="muted">Signed contributions total {{ data.gap | chf_whole }}. Positive contributions increase the gap; negative contributions decrease it.</p>
+  </section>
+
+  <section id="push-readiness"><h2>Push readiness</h2><div class="scroll"><table>
+    <thead><tr><th>Deal</th><th>Owner</th><th>Days since start</th><th>Status</th><th>Reasons</th></tr></thead><tbody>
+    {% for row in tables.push_readiness.rows %}<tr><td class="id">{{ row.deal_id }}</td><td>{{ data.owner_name(row.owner_id) }}<small class="owner-id">{{ row.owner_id }}</small></td><td class="money">{{ row.days_since_contract_start if row.days_since_contract_start is not none else 'not set' }}</td><td class="status {{ row.status | lower }}">{{ row.status }}</td><td>{{ row.reasons | join('; ') if row.reasons else 'All push checks pass' }}</td></tr>{% else %}<tr><td colspan="5">No deals awaiting a billing push.</td></tr>{% endfor %}
+    </tbody></table></div></section>
+
+  <section id="exceptions"><h2>Exceptions by owner</h2>
+    <p class="muted">Within each owner: money at risk, highest first, then severity. Findings without a reliable amount are not valued.</p>
+    {% for group in owners %}<h3 class="owner-heading"><span>{{ group.name }}<small class="owner-id">{{ group.owner }}</small></span><span class="owner-total">{{ group.rows | length }} findings · {{ group.risk | chf }}</span></h3>
+    <div class="scroll"><table><thead><tr><th>Check</th><th>Severity</th><th>Object</th><th>Record</th><th>Reason and evidence</th><th class="money">Money at risk</th></tr></thead><tbody>
+      {% for row in group.rows %}<tr data-record-id="{{ row.record_id }}"><td>{{ row.check_id }}</td><td class="{{ row.severity }}">{{ row.severity }}</td><td>{{ row.object_type }}</td><td class="id">{{ row.record_id }}</td><td>{{ row.reason }}<details><summary>Evidence</summary><pre>{{ row.details }}</pre></details></td><td class="money">{{ row.money_at_risk_chf | chf }}</td></tr>{% endfor %}
+    </tbody></table></div>{% else %}<p>No exceptions.</p>{% endfor %}
+  </section>
+
+  <section id="quarantine"><h2>Quarantine summary</h2>
+    <p class="muted">Quarantined source records are excluded from matching and ARR. Source values without a reliable CHF amount are not valued.</p>
+    <table><thead><tr><th>Reason</th><th class="money">Findings</th><th class="money">Distinct records</th><th>Valuation</th></tr></thead><tbody>
+      {% for row in quarantine %}<tr><td>{{ row.reason }}</td><td class="money">{{ row.findings }}</td><td class="money">{{ row.records }}</td><td>{{ row.valuation }}</td></tr>{% else %}<tr><td colspan="4">No quarantined records.</td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+  <footer>Synthetic data. Independent demo.</footer>
+</main></body></html>

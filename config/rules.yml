@@ -28,7 +28,8 @@ draft_order_status: Draft
 initial_order_version: 1
 new_deal_motion: new
 change_deal_motions: [upsell, renewal]
-quarantine_reasons: [ambiguous_domain, generic_email_domain, no_fx_rate, unparseable_amount, unparseable_date, id_corrupted_by_excel, ambiguous]
+quarantine_reasons: [multiple_company_domain_matches, multiple_company_id_matches, multiple_deal_order_matches, overlapping_order_versions, generic_email_domain, no_fx_rate, unparseable_amount, unparseable_date, id_corrupted_by_excel]
+planted_owner_ids: [OWN-000001, OWN-000002, OWN-000003, OWN-000004, OWN-000005, OWN-000006]
 
 # Audit, push, reconciliation and output contracts.
 customer_lifecycle_stage: customer
@@ -62,8 +63,12 @@ severity_allowed:
 - risk
 - leak
 - info
+exception_severity_order: [leak, risk, hygiene, info]
 push_ready_status: READY
 push_blocked_status: BLOCKED
+push_overdue_status: OVERDUE
+push_draft_only_status: DRAFT_ONLY
+push_status_order: [OVERDUE, DRAFT_ONLY, BLOCKED, READY]
 push_check_ids:
   company_count: P1
   account_number: P2
@@ -71,7 +76,7 @@ push_check_ids:
   required_fields: P4
   line_total: P5
 merge_property: merge
-arr_bridge_categories: [won_not_billed, not_yet_billed, billed_not_in_crm, double_billed, billing_only_change, renewed_in_billing_only, quarantined, value_mismatch, timing, within_tolerance, unexplained]
+arr_bridge_categories: [won_not_billed, not_yet_billed, billed_not_in_crm, double_billed, billing_only_change, renewed_in_billing_only, quarantined, crm_arr_not_valued, value_mismatch, timing, within_tolerance, unexplained]
 check_catalog:
   A1:
     description: Invalid or missing contact lifecycle

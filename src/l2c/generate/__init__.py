@@ -58,9 +58,10 @@ def generate_files(
     scale: int = 1,
     mapping_path: str | Path | None = None,
     output_dir: Path = RAW_DIR,
+    run_id: str | None = None,
 ) -> dict[str, int]:
     started = perf_counter()
-    run_id = uuid4().hex
+    run_id = run_id or uuid4().hex
     counts = None
     try:
         format_name = ExportFormat(format_name).value

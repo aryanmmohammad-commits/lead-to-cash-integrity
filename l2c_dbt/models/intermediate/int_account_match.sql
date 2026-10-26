@@ -31,7 +31,8 @@ with issues as (
            when d.n = 1 then 'domain'
            when d.n > 1 then 'ambiguous' else 'unmatched' end as match_method,
       case when i.reason is not null then i.reason
-           when e.n > 1 or (e.n = 0 and d.n > 1) then 'ambiguous' end as quarantine_reason,
+           when e.n > 1 then 'multiple_company_id_matches'
+           when e.n = 0 and d.n > 1 then 'multiple_company_domain_matches' end as quarantine_reason,
       case when e.n > 0 then e.n else d.n end as candidate_count
     from {{ ref('stg_younium__accounts') }} a
     join explicit_candidates e using (account_number)

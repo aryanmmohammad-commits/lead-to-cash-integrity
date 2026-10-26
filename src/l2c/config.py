@@ -79,6 +79,7 @@ class RulesConfig(ConfigModel):
     new_deal_motion: Text
     change_deal_motions: TextList
     quarantine_reasons: TextList
+    planted_owner_ids: TextList
     customer_lifecycle_stage: Text
     opportunity_lifecycle_stage: Text
     lead_lifecycle_stage: Text
@@ -96,9 +97,13 @@ class RulesConfig(ConfigModel):
     finance_owner_id: Text
     unassigned_owner_id: Text
     severity_allowed: TextList
+    exception_severity_order: TextList
     auto_renew_severity: Text
     push_ready_status: Text
     push_blocked_status: Text
+    push_overdue_status: Text
+    push_draft_only_status: Text
+    push_status_order: TextList
     push_check_ids: Annotated[dict[Text, Text], Field(min_length=1)]
     merge_property: Text
     arr_bridge_categories: TextList
@@ -126,7 +131,10 @@ class RulesConfig(ConfigModel):
         "generic_email_domains",
         "change_deal_motions",
         "quarantine_reasons",
+        "planted_owner_ids",
+        "push_status_order",
         "severity_allowed",
+        "exception_severity_order",
         "pre_customer_lifecycle_stages",
         "customer_conflicting_lead_statuses",
         "arr_bridge_categories",
@@ -174,6 +182,29 @@ class RulesConfig(ConfigModel):
         if value not in info.data.get("severity_allowed", []):
             raise ValueError("must be a member of severity_allowed")
         return value
+
+    @field_validator("exception_severity_order")
+    @classmethod
+    def validate_severity_order(cls, values: list[str], info: ValidationInfo) -> list[str]:
+        if set(values) != set(info.data.get("severity_allowed", [])):
+            raise ValueError("must contain each member of severity_allowed exactly once")
+        return values
+
+    @field_validator("push_status_order")
+    @classmethod
+    def validate_push_order(cls, values: list[str], info: ValidationInfo) -> list[str]:
+        statuses = {
+            info.data.get(key)
+            for key in (
+                "push_ready_status",
+                "push_blocked_status",
+                "push_overdue_status",
+                "push_draft_only_status",
+            )
+        }
+        if len(statuses) != 4 or set(values) != statuses:
+            raise ValueError("must contain each of the four distinct push statuses exactly once")
+        return values
 
     @field_validator("check_catalog")
     @classmethod

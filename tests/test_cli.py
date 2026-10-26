@@ -47,24 +47,33 @@ def test_root_help_lists_all_commands() -> None:
     [
         command
         for command in COMMANDS
-        if command not in (["generate"], ["load"], ["build"], ["show"])
+        if command
+        in (
+            ["remember"],
+            ["decisions", "import"],
+            ["fixes", "apply"],
+            ["fixes", "rollback"],
+            ["doctor"],
+            ["pull", "hubspot"],
+            ["pull", "younium"],
+        )
     ],
 )
-def test_each_command_is_a_failing_stub(command: list[str]) -> None:
+def test_v02_commands_point_to_the_roadmap_and_exit_one(command: list[str]) -> None:
     result = runner.invoke(cli.app, command)
     assert result.exit_code == 1
-    assert result.output.strip() == "not built yet"
+    assert result.output.strip() == "planned for v0.2 - see README roadmap"
 
 
 @pytest.mark.parametrize("command", MAPPING_COMMANDS)
 def test_source_commands_accept_mapping(command: list[str]) -> None:
     result = runner.invoke(cli.app, [*command, "--mapping", "custom mapping.yml"])
     assert result.exit_code == 1
-    if command in (["generate"], ["load"], ["build"]):
+    if command in (["generate"], ["load"], ["build"], ["run"]):
         assert "Cannot read configuration" in result.output
         assert "custom mapping.yml" in result.output
     else:
-        assert result.output.strip() == "not built yet"
+        assert result.output.strip() == "planned for v0.2 - see README roadmap"
     assert "--mapping" in runner.invoke(cli.app, [*command, "--help"]).output
 
 
